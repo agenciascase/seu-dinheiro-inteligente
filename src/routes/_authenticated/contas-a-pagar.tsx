@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { brl } from '@/lib/finance';
-import { openBillsForMonth, billDisplayDescription } from '@/lib/bills';
+import { openBillsForMonth, billDisplayDescription, availableBillMonths, monthLabel } from '@/lib/bills';
 import { importNotionFinance } from '@/lib/notion.functions';
 import { BankPanel, bankDataQuery } from '@/components/finance/bank-panel';
 
@@ -23,8 +23,11 @@ function BillsPage() {
   const { data } = useSuspenseQuery(billsQuery);
   const qc = useQueryClient(); const navigate = useNavigate(); const importFinance = useServerFn(importNotionFinance);
   const [today, setToday] = useState(currentDay);
+  const [selectedMonth, setSelectedMonth] = useState(() => currentDay().slice(0, 7));
   useEffect(() => { const timer = window.setInterval(() => setToday(currentDay()), 60_000); return () => window.clearInterval(timer); }, []);
-  const rows = openBillsForMonth(data, today);
+  const months = availableBillMonths(data, today);
+  const month = months.includes(selectedMonth) ? selectedMonth : months[0];
+  const rows = openBillsForMonth(data, `${month}-28`);
   const total = rows.reduce((sum, bill) => sum + bill.amount, 0);
   const importer = useMutation({ mutationFn: () => importFinance(), onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Contas atualizadas.'); }, onError: e => toast.error(e.message) });
   const update = useMutation({ mutationFn: async (id: string) => { const r = await supabase.from('bills').update({ status_override: true }).eq('id', id); if (r.error) throw r.error; }, onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Conta marcada como paga.'); }, onError: e => toast.error(e.message) });
