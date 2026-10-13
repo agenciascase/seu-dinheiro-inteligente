@@ -1,9 +1,71 @@
-import type { Tx } from './finance';
-const headings=['Data','Descrição','Tipo','Categoria','Conta','Valor'];
-const values=(rows:Tx[])=>rows.map(t=>[t.occurred_on,t.description,t.kind==='income'?'Receita':'Despesa',t.category,t.account,t.amount]);
-function download(blob:Blob,name:string){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
-export async function exportFinance(rows:Tx[],format:'csv'|'excel'|'pdf'){
-  if(format==='csv'){const quote=(v:unknown)=>`"${String(v).replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')}"`;download(new Blob(['\uFEFF'+[headings,...values(rows)].map(r=>r.map(quote).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'meu-organizador.csv');return;}
-  if(format==='excel'){const {default:ExcelJS}=await import('exceljs');const book=new ExcelJS.Workbook();const sheet=book.addWorksheet('Lançamentos');sheet.addRow(headings);for(const row of values(rows))sheet.addRow(row);sheet.columns.forEach(c=>{c.width=24;});download(new Blob([await book.xlsx.writeBuffer()],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'meu-organizador.xlsx');return;}
-  const {jsPDF}=await import('jspdf');const pdf=new jsPDF();pdf.setFontSize(16);pdf.text('Meu Organizador — Relatório financeiro',14,20);pdf.setFontSize(9);let y=32;for(const t of rows){const lines=pdf.splitTextToSize(`${t.occurred_on} | ${t.description} | ${t.category} | ${t.account} | ${t.kind==='income'?'+':'-'} R$ ${t.amount.toFixed(2)}`,180);if(y+lines.length*5>280){pdf.addPage();y=20;}pdf.text(lines,14,y);y+=lines.length*5+3;}pdf.save('meu-organizador.pdf');
+import type { Tx } from "./finance";
+const headings = ["Data", "Descrição", "Tipo", "Categoria", "Conta", "Valor"];
+const values = (rows: Tx[]) =>
+  rows.map((t) => [
+    t.occurred_on,
+    t.description,
+    t.kind === "income" ? "Receita" : "Despesa",
+    t.category,
+    t.account,
+    t.amount,
+  ]);
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+export async function exportFinance(rows: Tx[], format: "csv" | "excel" | "pdf") {
+  if (format === "csv") {
+    const quote = (v: unknown) =>
+      `"${String(v)
+        .replace(/^[=+\-@]/, "'$&")
+        .replace(/"/g, '""')}"`;
+    download(
+      new Blob(
+        ["\uFEFF" + [headings, ...values(rows)].map((r) => r.map(quote).join(";")).join("\r\n")],
+        { type: "text/csv;charset=utf-8" },
+      ),
+      "meu-organizador.csv",
+    );
+    return;
+  }
+  if (format === "excel") {
+    const { default: ExcelJS } = await import("exceljs");
+    const book = new ExcelJS.Workbook();
+    const sheet = book.addWorksheet("Lançamentos");
+    sheet.addRow(headings);
+    for (const row of values(rows)) sheet.addRow(row);
+    sheet.columns.forEach((c) => {
+      c.width = 24;
+    });
+    download(
+      new Blob([await book.xlsx.writeBuffer()], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      }),
+      "meu-organizador.xlsx",
+    );
+    return;
+  }
+  const { jsPDF } = await import("jspdf");
+  const pdf = new jsPDF();
+  pdf.setFontSize(16);
+  pdf.text("Meu Organizador — Relatório financeiro", 14, 20);
+  pdf.setFontSize(9);
+  let y = 32;
+  for (const t of rows) {
+    const lines = pdf.splitTextToSize(
+      `${t.occurred_on} | ${t.description} | ${t.category} | ${t.account} | ${t.kind === "income" ? "+" : "-"} R$ ${t.amount.toFixed(2)}`,
+      180,
+    );
+    if (y + lines.length * 5 > 280) {
+      pdf.addPage();
+      y = 20;
+    }
+    pdf.text(lines, 14, y);
+    y += lines.length * 5 + 3;
+  }
+  pdf.save("meu-organizador.pdf");
 }
