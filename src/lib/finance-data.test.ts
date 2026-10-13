@@ -2,9 +2,11 @@ import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { financeDataQuery } from "./finance-data";
 
+type Table = "transactions" | "savings_goals" | "goal_contributions" | "bank_connections";
+type Result = { data: unknown[] | null; error: Error | null };
 const { from, results } = vi.hoisted(() => ({
   from: vi.fn(),
-  results: {} as Record<string, { data: unknown[] | null; error: Error | null }>,
+  results: {} as Record<Table, Result>,
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { from } }));
@@ -12,10 +14,10 @@ vi.mock("@/integrations/supabase/client", () => ({ supabase: { from } }));
 describe("shared finance data", () => {
   beforeEach(() => {
     from.mockReset();
-    for (const table of ["transactions", "savings_goals", "goal_contributions", "bank_connections"]) {
+    for (const table of ["transactions", "savings_goals", "goal_contributions", "bank_connections"] as const) {
       results[table] = { data: [], error: null };
     }
-    from.mockImplementation((table: string) => ({
+    from.mockImplementation((table: Table) => ({
       select: () => ({
         ...results[table],
         order: () => Promise.resolve(results[table]),
@@ -32,7 +34,7 @@ describe("shared finance data", () => {
     const overview = await client.ensureQueryData(financeDataQuery);
     expect(overview.goals.map(goal => goal.id)).toEqual(["goal-1"]);
     expect(overview.contributions.filter(row => row.goal_id === "goal-1").map(row => row.amount)).toEqual([250]);
-    expect(overview.txs[0].amount).toBe(123.45);
+    expect(overview.txs[0]?.amount).toBe(123.45);
     expect(from).toHaveBeenCalledTimes(4);
     client.clear();
   });
