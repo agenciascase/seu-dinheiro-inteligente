@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Cofrinho — organize seu dinheiro e guarde mais" },
+      { title: "Meu Organizador — organize seu dinheiro e guarde mais" },
       {
         name: "description",
         content: "Suas contas, cartões, metas pessoais e consultoria financeira em um só lugar.",
       },
-      { property: "og:title", content: "Cofrinho — organize seu dinheiro e guarde mais" },
+      { property: "og:title", content: "Meu Organizador — organize seu dinheiro e guarde mais" },
       { property: "og:description", content: "Análise financeira, cartões e metas para guardar cada vez mais." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,7 +32,7 @@ function Index() {
         <div className="mx-auto max-w-5xl px-6 py-8">
           <nav className="flex items-center justify-between">
             <span className="flex items-center gap-2 font-display text-xl">
-              <PiggyBank className="h-6 w-6" /> Cofrinho
+              <PiggyBank className="h-6 w-6" /> Meu Organizador
             </span>
             <Link to="/auth" className="text-sm font-medium opacity-90 hover:opacity-100">
               Entrar
@@ -41,10 +41,10 @@ function Index() {
           <div className="py-12 md:py-16">
             <p className="mb-4 text-sm font-semibold text-accent">Seu dinheiro, com direção.</p>
             <h1 className="max-w-3xl text-5xl font-bold leading-[1.05] md:text-7xl">
-              Cofrinho
+              Meu Organizador
             </h1>
             <p className="mt-6 max-w-xl text-lg opacity-85">
-              O Cofrinho junta seus gastos, separa por categoria e te avisa o que dá para cortar.
+              O Meu Organizador junta seus gastos, separa por categoria e te avisa o que dá para cortar.
             </p>
             <blockquote className="mt-6 max-w-2xl border-l-2 border-accent pl-4 font-display text-lg text-accent">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
             <Button asChild variant="hero" size="lg" className="mt-10 h-12 px-8 text-base">

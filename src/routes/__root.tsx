@@ -75,7 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cofrinho — organizador financeiro" },
+      { title: "Meu Organizador — organizador financeiro" },
       { name: "description", content: "Organize contas, cartões e metas para guardar cada vez mais." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

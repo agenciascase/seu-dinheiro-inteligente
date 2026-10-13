@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Cofrinho" },
-      { name: "description", content: "Entre ou crie sua conta no Cofrinho." },
-      { property: "og:title", content: "Entrar — Cofrinho" },
+      { title: "Entrar — Meu Organizador" },
+      { name: "description", content: "Entre ou crie sua conta no Meu Organizador." },
+      { property: "og:title", content: "Entrar — Meu Organizador" },
       { property: "og:description", content: "Acesse seu organizador financeiro." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -71,7 +71,7 @@ function AuthPage() {
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-3xl border bg-card p-8 shadow-soft">
         <Link to="/" className="flex items-center gap-2 font-display text-xl text-primary">
-          <PiggyBank className="h-6 w-6" /> Cofrinho
+          <PiggyBank className="h-6 w-6" /> Meu Organizador
         </Link>
         <h1 className="mt-6 text-3xl font-bold">{mode === "in" ? "Bem-vindo de volta" : "Crie sua conta"}</h1>
         <Button variant="outline" className="mt-6 w-full" onClick={google}>
