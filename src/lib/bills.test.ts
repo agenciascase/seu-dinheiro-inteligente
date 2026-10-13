@@ -27,3 +27,7 @@ it('handles Notion month names with or without a year and excludes future months
   const october = { ...monthlyBill, reference_month: 'Outubro' };
   expect(openBillsForMonth([october, { ...monthlyBill, reference_month: 'Novembro' }, { ...monthlyBill, reference_month: 'Dezembro 2025' }], '2026-10-13')).toEqual([october, { ...monthlyBill, reference_month: 'Dezembro 2025' }]);
 });
+it('lists expense months plus the current month, newest first, without duplicates', () => {
+  expect(availableBillMonths([monthlyBill, { ...monthlyBill, reference_month: 'Setembro 2026' }, { ...monthlyBill, kind: 'income', reference_month: '2026-08' }], '2026-10-13')).toEqual(['2026-10', '2026-09']);
+});
+it('formats a month as a short pt-BR label', () => { expect(monthLabel('2026-10')).toBe('out/2026'); });
