@@ -40,7 +40,7 @@ export function openBillsForMonth<T extends MonthlyBill>(rows: T[], today: strin
   return rows.filter(bill => bill.kind === 'expense' && !isBillPaid(bill) && !isOrganizerSummary(bill.description) && billReferenceMonth(bill) <= currentMonth);
 }
 export function billDisplayDescription(description: string): string {
-  return description.replace(/\b\d{1,2}[\/.-]\d{1,2}(?:[\/.-]\d{2,4})?\b/g, '').replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').replace(/\s+/g, ' ').trim() || 'Conta';
+  return description.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').replace(/\b\d{1,2}[\/.-]\d{1,2}(?:[\/.-]\d{2,4})?\b/g, '').replace(/\s+/g, ' ').trim() || 'Conta';
 }
 export function billSummary(rows: BillSummaryRow[], today: string) {
   return rows.reduce((s, bill) => {
