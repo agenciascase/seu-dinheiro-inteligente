@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
-import { mapNotionBill, type NotionRow } from './bills';
+import { mapNotionBill, isOrganizerSummary, type NotionRow } from './bills';
 
 export const importNotionFinance = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const { data: access, error } = await context.supabase.from('notion_finance_access').select('organizer_page_id').eq('user_id', context.userId).maybeSingle();
@@ -21,6 +21,10 @@ export const importNotionFinance = createServerFn({ method: 'POST' }).middleware
     databases.push(...blocks.results.filter(b => b.type === 'child_database')); cursor = blocks.has_more ? blocks.next_cursor : null;
   } while (cursor);
   let imported = 0; let skipped = 0;
+  const previous = await context.supabase.from('bills').select('id,description').eq('source', 'notion');
+  if (previous.error) throw new Error(previous.error.message);
+  const summaries = previous.data.filter(b => isOrganizerSummary(b.description)).map(b => b.id);
+  if (summaries.length) { const removed = await context.supabase.from('bills').delete().in('id', summaries); if (removed.error) throw new Error(removed.error.message); }
   for (const db of databases) {
     const database = await request<{ data_sources: { id: string }[] }>(`/databases/${db.id}`);
     for (const source of database.data_sources) {

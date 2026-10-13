@@ -9,15 +9,17 @@ export function money(value: string): number | null {
 }
 export function mapNotionBill(row: NotionRow, month: string) {
   const p = row.properties;
+  const description = text(p['Descrição']) || text(p['Nome']) || 'Sem descrição';
+  if (isOrganizerSummary(description)) return null;
   const expense = p['Valor Saída']?.number ?? money(text(p['Saída']));
   const income = p['Valor Entrada']?.number ?? money(text(p['Entrada']));
   if (expense && income) return null;
   const amount = expense || income;
   if (!amount || amount <= 0) return null;
-  const description = text(p['Descrição']) || text(p['Nome']) || 'Sem descrição';
   const date = p['Vencimento']?.date?.start ?? p['Data']?.date?.start;
-  return { description, amount, kind: expense ? 'expense' : 'income', due_on: date?.slice(0, 10) ?? null, reference_month: month.trim(), paid: p['Pago']?.checkbox === true, account: text(p['Conta']) || p['Conta']?.select?.name || 'Não informada', source: 'notion', external_id: row.id, source_url: row.url ?? null };
+  return { description, amount, kind: /^entrada$/i.test(description) || !expense ? 'income' : 'expense', due_on: date?.slice(0, 10) ?? null, reference_month: month.trim(), paid: p['Pago']?.checkbox === true, account: text(p['Conta']) || p['Conta']?.select?.name || 'Não informada', source: 'notion', external_id: row.id, source_url: row.url ?? null };
 }
+export const isOrganizerSummary = (description: string) => /^(total(?:\s+(?:sa[ií]da|entrada))?|restante|saldo)$/i.test(description.trim());
 export type BillSummaryRow = { amount: number; kind: string; paid: boolean; status_override: boolean | null; due_on: string | null };
 export const isBillPaid = (bill: BillSummaryRow) => bill.status_override ?? bill.paid;
 export function billSummary(rows: BillSummaryRow[], today: string) {
