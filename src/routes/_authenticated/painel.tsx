@@ -17,6 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { summarize, suggestCuts, brl, categorize, filterTransactions, PERIOD_LABELS, SAVINGS_GOAL, type Period, type Tx } from "@/lib/finance";
 import { getAiTips } from "@/lib/insights.functions";
 import { financeDataQuery as txQuery } from "@/lib/finance-data";
+import { planningDataQuery } from '@/lib/planning-data';
+import { currentMonth, monthlyPlan, budgetState } from '@/lib/planning';
+import { isBillPaid } from '@/lib/bills';
+import { BarChart, Bar, XAxis, YAxis } from 'recharts';
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -29,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(txQuery),
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(txQuery),context.queryClient.ensureQueryData(planningDataQuery)]),
   component: Painel,
 });
 
@@ -39,8 +43,11 @@ function Painel() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data } = useSuspenseQuery(txQuery);
+  const {data:planning}=useSuspenseQuery(planningDataQuery);
+  const [month,setMonth]=useState(currentMonth);
   const [period, setPeriod] = useState<Period>("monthly");
   const [account, setAccount] = useState("all");
+  const plan=monthlyPlan(data.txs.filter(t=>account==='all'||t.account===account),planning.bills.filter(b=>account==='all'||b.account===account),data.contributions.filter(c=>account==='all'||data.goals.some(g=>g.id===c.goal_id&&g.account===account)),planning.withdrawals.filter(c=>account==='all'||data.goals.some(g=>g.id===c.goal_id&&g.account===account)),month);
   const txs = useMemo(() => filterTransactions(data.txs, period, account) as (Tx & { id: string })[], [data.txs, period, account]);
   const summary = useMemo(() => summarize(txs), [txs]);
   const { cuts, covered } = useMemo(() => suggestCuts(summary), [summary]);
@@ -64,19 +71,16 @@ function Painel() {
   return (
     <div className="min-h-screen">
       <AppHeader active="orcamento" onSignOut={signOut}>
-        <div className="mt-6 rounded-lg border bg-card p-5">
-          <p className="text-sm text-muted-foreground">{PERIOD_LABELS[period]} · {account === "all" ? "Todas as contas" : account}</p>
-          <div className="mt-2 grid gap-6 md:grid-cols-3">
-            <Stat label="Entrou" value={brl(summary.income)} />
-            <Stat label="Saiu" value={brl(summary.expenses)} />
-            <Stat label="Sobrou" value={brl(summary.leftover)} highlight />
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">Referência inicial: pelo menos {brl(SAVINGS_GOAL)} por mês — quanto mais sobrar, melhor.</p>
-        </div>
         <blockquote className="mt-5 max-w-3xl border-l-2 border-primary pl-4 font-display text-lg text-primary">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
       </AppHeader>
 
       <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
+        <div className="flex flex-wrap items-center justify-between gap-4"><h1 className="font-display text-3xl">Visão geral</h1><Input type="month" aria-label="Mês da visão geral" value={month} onChange={e=>setMonth(e.target.value||currentMonth())} className="w-44"/></div>
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[['Receita total do mês',plan.income],['Contas fixas',plan.fixed],['Despesas variáveis',plan.variable],['Guardado nos cofrinhos',plan.allSaved],['Saldo disponível',plan.available],['Previsão de fim do mês',plan.forecast]].map(([label,n])=><article key={label} className="rounded-lg border bg-card p-5"><p className="text-sm text-muted-foreground">{label}</p><p className={`mt-2 font-display text-3xl break-words ${Number(n)<0?'text-destructive':'text-primary'}`}>{brl(Number(n))}</p></article>)}</section>
+        {plan.forecast<0&&<p className="text-destructive">Você terminará o mês negativo: {brl(plan.forecast)}.</p>}
+        {planning.budgets.map(b=>{const spent=plan.rows.filter(t=>t.category===b.category&&t.kind==='expense'&&!t.is_transfer).reduce((s,t)=>s+t.amount,0);const state=budgetState(spent,Number(b.monthly_limit));return state==='normal'?null:<p key={b.id} className={state==='exceeded'?'text-destructive':'text-warning'}>Você gastou {Math.round(spent/Number(b.monthly_limit)*100)}% do orçamento em {b.category}.</p>;})}
+        <section><h2 className="text-2xl">Receitas × despesas</h2><div className="mt-4 h-56"><ResponsiveContainer><BarChart data={[{name:month,receitas:plan.income,despesas:plan.expenses}]}><XAxis dataKey="name"/><YAxis/><Tooltip formatter={v=>brl(Number(v))}/><Bar name="Receitas" dataKey="receitas" fill="var(--success)"/><Bar name="Despesas" dataKey="despesas" fill="var(--chart-1)"/></BarChart></ResponsiveContainer></div></section>
+        <section><div className="flex items-center justify-between"><h2 className="text-2xl">Próximos vencimentos</h2><Button asChild variant="ghost"><Link to="/calendario">Calendário</Link></Button></div><ul className="mt-4 divide-y">{planning.bills.filter(b=>!isBillPaid(b)&&b.due_on?.startsWith(month)).sort((a,b)=>(a.due_on??'').localeCompare(b.due_on??'')).slice(0,5).map(b=><li key={b.id} className="flex justify-between gap-3 py-3"><span className="min-w-0 break-words">{b.description}<span className="block text-xs text-muted-foreground">{b.due_on}</span></span><strong>{brl(b.amount)}</strong></li>)}</ul></section>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap gap-2" role="group" aria-label="Período de análise">{(Object.keys(PERIOD_LABELS) as Period[]).map(p => <Button key={p} variant={period === p ? "default" : "outline"} aria-pressed={period === p} onClick={() => setPeriod(p)}>{PERIOD_LABELS[p]}</Button>)}</div>
           <div className="space-y-1"><label htmlFor="account-filter" className="block text-xs text-muted-foreground">Conta</label><FinanceSelect label="Filtrar conta" value={account} onChange={setAccount} options={[{ value: "all", label: "Todas as contas juntas" }, ...accounts.map(a => ({ value: a, label: a }))]} /></div>
@@ -138,7 +142,7 @@ function Painel() {
 
             <div id="cartoes" className="scroll-mt-6"><Cards txs={txs} /></div>
             <AiTips key={`${period}-${account}`} period={period} account={account} />
-            <div id="patrimonio" className="scroll-mt-6"><Goals goals={data.goals} contributions={data.contributions} accounts={accounts} /></div>
+            <section id="patrimonio"><div className="flex justify-between gap-3"><h2 className="text-2xl">Progresso dos cofrinhos</h2><Button asChild variant="outline"><Link to="/metas">Meus objetivos</Link></Button></div><div className="mt-4 grid gap-4 sm:grid-cols-2">{data.goals.map(g=>{const saved=data.contributions.filter(c=>c.goal_id===g.id).reduce((s,c)=>s+Number(c.amount),0)-planning.withdrawals.filter(w=>w.goal_id===g.id).reduce((s,w)=>s+Number(w.amount),0);return <article key={g.id} className="rounded-lg border bg-card p-5"><h3 className="text-xl">{g.name}</h3><p className="mt-2 text-sm">{brl(saved)} de {brl(Number(g.target))} · {Math.round(saved/Number(g.target)*100)}%</p><p className="mt-1 text-xs text-muted-foreground">{g.allocation_percent}% da receita · {g.account}</p></article>;})}</div></section>
 
             <section className="border-t pt-6">
               <div className="flex flex-wrap items-center justify-between gap-3">

@@ -20,3 +20,5 @@
 - Both finance screens use the canonical query in `src/lib/finance-data.ts` for the `finance-data` key, always including transactions, goals, contributions and connections — prevents cache shape collisions when navigating between bills and the overview.
 - Shared Notion credentials are accessible only after an owner-scoped, non-user-writable organizer authorization — prevents other app users from importing the builder's private workspace.
 - Notion refreshes preserve local payment overrides and never infer payment from bank amount matches — keeps reviewed statuses stable and avoids false reconciliation.
+- Planning calculations live in tested pure helpers; atomic database functions handle bill payment, recurrence and closing, while income triggers allocate goal records — prevents partial writes and repeated allocations without moving bank funds.
+- Planning reads use a separate canonical query alongside financeDataQuery; authenticated feature routes share focused workspaces — preserves the existing cache contract and independent route metadata.

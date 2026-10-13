@@ -30,7 +30,9 @@ function BillsPage() {
   const rows = openBillsForMonth(data, `${month}-28`);
   const total = rows.reduce((sum, bill) => sum + bill.amount, 0);
   const importer = useMutation({ mutationFn: () => importFinance(), onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Contas atualizadas.'); }, onError: e => toast.error(e.message) });
-  const update = useMutation({ mutationFn: async (id: string) => { const r = await supabase.from('bills').update({ status_override: true }).eq('id', id); if (r.error) throw r.error; }, onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Conta marcada como paga.'); }, onError: e => toast.error(e.message) });
+  const [payId,setPayId]=useState<string|null>(null);const [existingPayment,setExistingPayment]=useState('new');
+  const {data:bankData}=useSuspenseQuery(bankDataQuery);
+  const update = useMutation({ mutationFn: async (id: string) => { const r = await supabase.rpc('pay_financial_bill',{bill_id:id,...(existingPayment==='new'?{}:{existing_transaction:existingPayment})}); if (r.error) throw r.error; }, onSuccess: () => { setPayId(null);qc.invalidateQueries({ queryKey: ['bills'] });qc.invalidateQueries({queryKey:['finance-data']});qc.invalidateQueries({queryKey:['planning-data']}); toast.success('Conta marcada como paga.'); }, onError: e => toast.error(e.message) });
   const add = useMutation({ mutationFn: async (form: FormData) => { const amount = Number(String(form.get('amount')).replace(',', '.')); const description = String(form.get('description')).trim(); if (!description) throw new Error('Informe a descrição da conta.'); if (!Number.isFinite(amount) || amount <= 0) throw new Error('Informe um valor maior que zero.'); const r = await supabase.from('bills').insert({ description, amount, due_on: null, reference_month: month, kind: 'expense' }); if (r.error) throw r.error; }, onSuccess: () => qc.invalidateQueries({ queryKey: ['bills'] }), onError: e => toast.error(e.message) });
   async function signOut() { await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut(); navigate({ to: '/auth', replace: true }); }
   return <div className="min-h-screen">
@@ -41,7 +43,7 @@ function BillsPage() {
         <Button variant="ghost" size="sm" disabled={importer.isPending} onClick={() => importer.mutate()}><RefreshCw className={`h-4 w-4 ${importer.isPending ? 'animate-spin motion-reduce:animate-none' : ''}`} />{importer.isPending ? 'Atualizando…' : 'Atualizar do Notion'}</Button>
       </div>
       <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Meses">
-        {months.map(m => <button key={m} role="tab" aria-selected={m === month} onClick={() => setSelectedMonth(m)} className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${m === month ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{monthLabel(m)}</button>)}
+        {months.map(m => <Button key={m} role="tab" aria-selected={m === month} variant={m===month?'default':'outline'} onClick={() => setSelectedMonth(m)}>{monthLabel(m)}</Button>)}
       </div>
       <div className="flex flex-wrap items-end justify-between gap-4 border-b py-7">
         <div><p className="text-sm text-muted-foreground">Total em aberto</p><p className="mt-2 font-display text-4xl text-primary">{brl(total)}</p></div>
@@ -50,9 +52,10 @@ function BillsPage() {
       <ul className="divide-y">{rows.map(b => { const description = billDisplayDescription(b.description); return <li key={b.id} className="flex items-center gap-3 py-5 sm:gap-5">
         <div className="min-w-0 flex-1"><p className="break-words font-medium">{description}</p>{b.account !== 'Não informada' && <p className="mt-1 text-xs text-muted-foreground">{b.account}</p>}</div>
         <strong className="shrink-0 text-sm tabular-nums sm:text-base">{brl(b.amount)}</strong>
-        <Button variant="outline" size="icon" title="Marcar como paga" aria-label={`Marcar como paga: ${description}`} disabled={update.isPending} onClick={() => update.mutate(b.id)}><Check className="h-4 w-4" /></Button>
+        <Button variant="outline" size="icon" title="Marcar como paga" aria-label={`Marcar como paga: ${description}`} disabled={update.isPending} onClick={() => {setPayId(b.id);setExistingPayment('new');}}><Check className="h-4 w-4" /></Button>
       </li>; })}</ul>
       {rows.length === 0 && <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground"><CheckCircle2 className="h-8 w-8 text-primary" /><p>Nenhuma conta em aberto.</p></div>}
+      {payId&&<div className="flex flex-wrap gap-3 border-y py-4"><select aria-label="Despesa do pagamento" value={existingPayment} onChange={e=>setExistingPayment(e.target.value)} className="h-10 max-w-full rounded-md border bg-background px-3"><option value="new">Registrar nova despesa</option>{bankData.txs.filter(t=>t.kind==='expense'&&!t.is_transfer).map(t=><option key={t.id} value={t.id}>{t.description} · {brl(t.amount)}</option>)}</select><Button disabled={update.isPending} onClick={()=>update.mutate(payId)}>Confirmar pagamento</Button><Button variant="ghost" onClick={()=>setPayId(null)}>Cancelar</Button></div>}
       <form className="mt-6 grid grid-cols-[minmax(0,1fr)_7rem_auto] gap-2 border-t pt-6" onSubmit={e => { e.preventDefault(); const form = e.currentTarget; add.mutate(new FormData(form), { onSuccess: () => form.reset() }); }}>
         <Input name="description" required maxLength={300} aria-label="Descrição da conta" placeholder="Nova conta" />
         <Input name="amount" required aria-label="Valor da conta" placeholder="Valor R$" inputMode="decimal" />

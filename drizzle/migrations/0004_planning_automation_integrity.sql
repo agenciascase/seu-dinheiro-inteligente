@@ -1,0 +1,10 @@
+CREATE OR REPLACE FUNCTION public.allocate_income_goals() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ BEGIN
+IF TG_OP='DELETE' THEN DELETE FROM public.goal_contributions WHERE income_id=OLD.id AND user_id=OLD.user_id; RETURN OLD; END IF;
+IF TG_OP='UPDATE' THEN
+IF NEW.amount IS NOT DISTINCT FROM OLD.amount AND NEW.kind IS NOT DISTINCT FROM OLD.kind AND NEW.is_transfer IS NOT DISTINCT FROM OLD.is_transfer AND NEW.occurred_on IS NOT DISTINCT FROM OLD.occurred_on THEN RETURN NEW; END IF;
+DELETE FROM public.goal_contributions WHERE income_id=NEW.id AND user_id=NEW.user_id; END IF;
+IF NEW.kind='income' AND NOT NEW.is_transfer THEN INSERT INTO public.goal_contributions(user_id,goal_id,amount,income_id,occurred_on) SELECT NEW.user_id,g.id,round(NEW.amount*g.allocation_percent/100,2),NEW.id,NEW.occurred_on FROM public.savings_goals g WHERE g.user_id=NEW.user_id AND g.allocation_percent>0 AND round(NEW.amount*g.allocation_percent/100,2)>0; END IF; RETURN NEW; END $$;
+CREATE OR REPLACE FUNCTION public.auto_close_financial_months() RETURNS void LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ DECLARE m text; current_month text; BEGIN current_month:=to_char(now() AT TIME ZONE 'America/Sao_Paulo','YYYY-MM');
+FOR m IN SELECT DISTINCT period_key FROM (SELECT to_char(occurred_on,'YYYY-MM') AS period_key FROM public.transactions WHERE user_id=auth.uid() UNION SELECT reference_month AS period_key FROM public.bills WHERE user_id=auth.uid()) periods WHERE period_key ~ '^\d{4}-(0[1-9]|1[0-2])$' AND period_key<current_month AND NOT EXISTS(SELECT 1 FROM public.month_closings c WHERE c.user_id=auth.uid() AND c.month=periods.period_key) ORDER BY period_key LOOP PERFORM public.close_financial_month(m); END LOOP;
+END $$;
+GRANT EXECUTE ON FUNCTION public.auto_close_financial_months() TO authenticated; REVOKE EXECUTE ON FUNCTION public.auto_close_financial_months() FROM PUBLIC,anon;
