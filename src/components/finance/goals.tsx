@@ -1,3 +1,4 @@
+import { FinanceSelect } from "./account-select";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Target, Plus, Trash2 } from "lucide-react";
@@ -27,7 +28,7 @@ export function Goals({ goals, contributions, accounts }: { goals: Goal[]; contr
     <form className="mt-4 flex flex-wrap gap-2" onSubmit={event => { event.preventDefault(); if (name.trim() && Number(target.replace(",", ".")) > 0) create.mutate(); }}>
       <Input aria-label="Nome da meta" placeholder="Ex.: Viagem para os EUA" required value={name} onChange={e => setName(e.target.value)} className="min-w-48 flex-1" />
       <Input aria-label="Valor da meta" placeholder="Ex.: 10000" required inputMode="decimal" value={target} onChange={e => setTarget(e.target.value)} className="w-36" />
-      <select aria-label="Conta da meta" value={account} onChange={e => setAccount(e.target.value)} className="h-10 max-w-full rounded-md border bg-card px-3 text-sm">{accounts.map(a => <option key={a}>{a}</option>)}</select>
+      <FinanceSelect label="Conta da meta" value={account} onChange={setAccount} options={accounts.map(a => ({ value: a, label: a }))} />
       <Button type="submit" disabled={create.isPending}><Plus className="h-4 w-4" /> Criar meta</Button>
     </form>
     <div className="mt-5 grid gap-4 md:grid-cols-2">{goals.map(goal => <div key={goal.id} className="rounded-lg border bg-card p-5"><div className="flex items-start justify-between gap-2"><div><h3 className="text-xl font-semibold break-words">{goal.name}</h3><p className="text-sm text-muted-foreground">{goal.account}</p></div><Button size="icon" variant="ghost" aria-label={`Excluir meta ${goal.name}`} onClick={() => { if (window.confirm("Excluir esta meta e seus valores registrados?")) remove.mutate(goal.id); }}><Trash2 className="h-4 w-4" /></Button></div><GoalBalance goal={goal} contributions={contributions.filter(c => c.goal_id === goal.id)} /></div>)}</div>

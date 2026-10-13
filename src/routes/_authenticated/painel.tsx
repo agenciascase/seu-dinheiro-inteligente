@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { FinanceSelect } from "@/components/finance/account-select";
 import { Banks } from "@/components/finance/banks";
 import { Goals } from "@/components/finance/goals";
 import { Cards } from "@/components/finance/cards";
@@ -98,7 +99,7 @@ function Painel() {
       <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap gap-2" role="group" aria-label="Período de análise">{(Object.keys(PERIOD_LABELS) as Period[]).map(p => <Button key={p} variant={period === p ? "default" : "outline"} aria-pressed={period === p} onClick={() => setPeriod(p)}>{PERIOD_LABELS[p]}</Button>)}</div>
-          <div className="space-y-1"><label htmlFor="account-filter" className="block text-xs text-muted-foreground">Conta</label><select id="account-filter" aria-label="Filtrar conta" value={account} onChange={e => setAccount(e.target.value)} className="h-10 max-w-full rounded-md border bg-card px-3 text-sm"><option value="all">Todas as contas juntas</option>{accounts.map(a => <option key={a}>{a}</option>)}</select></div>
+          <div className="space-y-1"><label htmlFor="account-filter" className="block text-xs text-muted-foreground">Conta</label><FinanceSelect label="Filtrar conta" value={account} onChange={setAccount} options={[{ value: "all", label: "Todas as contas juntas" }, ...accounts.map(a => ({ value: a, label: a }))]} /></div>
         </div>
         <Banks connections={data.connections} />
         {txs.length === 0 && <p className="text-muted-foreground">Nenhum lançamento neste período e conta.</p>}
@@ -279,8 +280,8 @@ function AddTx({ accounts }: { accounts: string[] }) {
       </Select>
       <Input aria-label="Descrição do lançamento" required className="min-w-40 flex-1" placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
       <Input aria-label="Valor do lançamento" required className="w-28" placeholder="Valor" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
-      <select aria-label="Conta do lançamento" value={account} onChange={e => setAccount(e.target.value)} className="h-10 max-w-full rounded-md border bg-card px-3 text-sm">{accounts.map(a => <option key={a}>{a}</option>)}</select>
-      <select aria-label="Forma de pagamento" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="h-10 rounded-md border bg-card px-3 text-sm"><option value="debit">Conta / Débito</option><option value="credit">Cartão de crédito</option></select>
+      <FinanceSelect label="Conta do lançamento" value={account} onChange={setAccount} options={accounts.map(a => ({ value: a, label: a }))} />
+      <FinanceSelect label="Forma de pagamento" value={paymentMethod} onChange={setPaymentMethod} options={[{ value: "debit", label: "Conta / Débito" }, { value: "credit", label: "Cartão de crédito" }]} />
       <Button type="submit" disabled={add.isPending}><Plus className="h-4 w-4" /> Adicionar</Button>
     </form>
   );
