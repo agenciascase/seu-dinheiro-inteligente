@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-router";
 import { AppHeader } from "@/components/finance/app-header";
 import { useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -32,6 +32,7 @@ const txQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/_authenticated/painel")({
+  beforeLoad: () => { throw redirect({ to: '/contas-a-pagar', replace: true }); },
   head: () => ({
     meta: [
       { title: "Meu painel — Meu Organizador" },

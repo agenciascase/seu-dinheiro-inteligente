@@ -16,5 +16,6 @@
 - Pluggy credentials stay server-side; every item must match the authenticated clientUserId before persistence or synchronization — prevents cross-user bank data access.
 - Banking, goals and credit review use focused finance components and pure helpers — keeps the main finance screen maintainable and calculation rules testable.
 - Bills are separate from bank transactions and use tested pure mapping/summary helpers — avoids double-counting planned payments as bank expenses.
+- Pending bill month eligibility and carryover are computed by pure helpers from original reference dates, never by rewriting imported rows — preserves provenance and keeps refreshes idempotent.
 - Shared Notion credentials are accessible only after an owner-scoped, non-user-writable organizer authorization — prevents other app users from importing the builder's private workspace.
 - Notion refreshes preserve local payment overrides and never infer payment from bank amount matches — keeps reviewed statuses stable and avoids false reconciliation.
