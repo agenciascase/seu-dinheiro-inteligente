@@ -15,7 +15,7 @@ export function AppHeader({ active, onSignOut, children }: { active: Tab; onSign
             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Layers className="h-6 w-6" /></span>
             <span className="leading-tight">
               <span className="block text-lg font-bold uppercase tracking-wide">Meu Organizador</span>
-              <span className="block text-xs uppercase tracking-wider text-muted-foreground">Personal Finance</span>
+              <span className="block text-xs uppercase tracking-wider text-muted-foreground">{"\n"}</span>
             </span>
           </Link>
           {onSignOut && <Button variant="ghost" onClick={onSignOut}><LogOut className="h-4 w-4" /> Sair</Button>}
