@@ -1,19 +1,11 @@
-import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { financeDataQuery } from '@/lib/finance-data';
 import { Banks } from './banks';
 import { FinanceSelect } from './account-select';
 import { brl, filterTransactions, summarize, type Tx } from '@/lib/finance';
 
-export const bankDataQuery = queryOptions({ queryKey: ['finance-data'], queryFn: async () => {
-  const [connections, transactions] = await Promise.all([
-    supabase.from('bank_connections').select('*'),
-    supabase.from('transactions').select('*').order('occurred_on', { ascending: false }),
-  ]);
-  if (connections.error) throw connections.error;
-  if (transactions.error) throw transactions.error;
-  return { connections: connections.data, txs: transactions.data.map(row => ({ ...row, amount: Number(row.amount) })) };
-} });
+export const bankDataQuery = financeDataQuery;
 export function BankPanel() {
   const { data } = useSuspenseQuery(bankDataQuery);
   const [account, setAccount] = useState('all');
