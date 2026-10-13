@@ -13,7 +13,7 @@ export const findBankConnections = createServerFn({ method: "POST" }).middleware
   do {
     const url = new URL('https://api.pluggy.ai/v2/items'); url.searchParams.set('clientUserId', context.userId); if (after) url.searchParams.set('after', after);
     const response = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
-    if (!response.ok) { const detail = await response.text(); console.error(`Pluggy [${response.status}]: ${detail}`); throw new Error(`Pluggy [${response.status}]: ${detail}`); }
+    if (!response.ok) throw new Error(`Pluggy: não foi possível buscar as autorizações (${response.status}).`);
     const page = await response.json() as { results: { id: string; clientUserId?: string; connector: { name: string } }[]; next?: string | null };
     const owned = page.results.filter(item => item.clientUserId === context.userId);
     if (owned.length) {

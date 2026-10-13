@@ -11,11 +11,12 @@ import { Input } from '@/components/ui/input';
 import { brl } from '@/lib/finance';
 import { openBillsForMonth, billDisplayDescription } from '@/lib/bills';
 import { importNotionFinance } from '@/lib/notion.functions';
+import { BankPanel, bankDataQuery } from '@/components/finance/bank-panel';
 
 const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => { const result = await supabase.from('bills').select('*').order('due_on', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false }); if (result.error) throw result.error; return result.data.map(b => ({ ...b, amount: Number(b.amount) })); } });
 export const Route = createFileRoute('/_authenticated/contas-a-pagar')({
   head: () => ({ meta: [{ title: 'Contas a pagar — Meu Organizador' }, { name: 'description', content: 'Suas contas em aberto, com pendências anteriores reunidas no mês atual.' }, { property: 'og:title', content: 'Contas a pagar — Meu Organizador' }, { property: 'og:description', content: 'Acompanhe e quite suas contas em aberto.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(billsQuery), component: BillsPage,
+  loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(billsQuery), context.queryClient.ensureQueryData(bankDataQuery)]), component: BillsPage,
 });
 const currentDay = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 function BillsPage() {
@@ -51,6 +52,7 @@ function BillsPage() {
         <Input name="amount" required aria-label="Valor da conta" placeholder="Valor R$" inputMode="decimal" />
         <Button size="icon" title="Adicionar conta" aria-label="Adicionar conta" disabled={add.isPending}><Plus className="h-4 w-4" /></Button>
       </form>
+      <BankPanel />
     </main>
   </div>;
 }
