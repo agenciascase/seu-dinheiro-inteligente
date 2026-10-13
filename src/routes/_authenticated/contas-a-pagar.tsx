@@ -26,7 +26,7 @@ function BillsPage() {
   const [selectedMonth, setSelectedMonth] = useState(() => currentDay().slice(0, 7));
   useEffect(() => { const timer = window.setInterval(() => setToday(currentDay()), 60_000); return () => window.clearInterval(timer); }, []);
   const months = availableBillMonths(data, today);
-  const month = months.includes(selectedMonth) ? selectedMonth : months[0];
+  const month = months.includes(selectedMonth) ? selectedMonth : (months[0] ?? today.slice(0, 7));
   const rows = openBillsForMonth(data, `${month}-28`);
   const total = rows.reduce((sum, bill) => sum + bill.amount, 0);
   const importer = useMutation({ mutationFn: () => importFinance(), onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Contas atualizadas.'); }, onError: e => toast.error(e.message) });
