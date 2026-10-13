@@ -338,6 +338,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_close_financial_months: { Args: never; Returns: undefined }
       close_financial_month: {
         Args: { target_month: string }
         Returns: undefined
