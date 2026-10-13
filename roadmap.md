@@ -1,4 +1,6 @@
 # Meu Organizador
+- [ ] Expand personal planning: monthly dashboard, income/expense editing, recurring bills, percentage goals and withdrawals, category budgets, calendar, month closing/history, reports/simulation/alerts, search and PDF/Excel/CSV exports.
+- [ ] Verify saved Pluggy app and replace credentials through secure form if user chooses their production app; never delete bank records to change the app label.
 - [x] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; rules and signed-in payment persistence verified, no runtime errors or mobile overflow.
 - [x] Preserve Pluggy connection and bank movement access in a collapsible section inside Contas a pagar; connection window verified.
 - [ ] Synchronize real Pluggy movements: authorization discovery returns HTTP 403; no authorized bank is registered. Await user bank consent and provider production permissions (widget currently displays Demo).
