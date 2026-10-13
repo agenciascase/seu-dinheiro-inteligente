@@ -20,6 +20,7 @@ export function Banks({ connections }: { connections: { item_id: string; bank_na
   }, onError: error => toast.error(error.message) });
   const refresh = useMutation({ mutationFn: (itemId: string) => sync({ data: { itemId } }), onSuccess: result => {
     qc.invalidateQueries({ queryKey: ["finance-data"] });
+    qc.invalidateQueries({ queryKey: ["planning-data"] });
     toast.success(`${result.imported} movimentos sincronizados.`);
   }, onError: error => toast.error(error.message) });
   return <section className="border-b pb-6">
