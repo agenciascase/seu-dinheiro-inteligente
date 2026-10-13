@@ -8,6 +8,9 @@ export type Tx = {
   kind: "expense" | "income";
   category: string;
   account: string;
+  payment_method?: string;
+  necessity?: string;
+  is_transfer?: boolean;
 };
 
 export const CATEGORIES = [
@@ -51,6 +54,7 @@ export function summarize(txs: Tx[]): Summary {
   let expenses = 0;
   const map = new Map<string, number>();
   for (const t of txs) {
+    if (t.is_transfer) continue;
     const v = Number(t.amount);
     if (t.kind === "income") income += v;
     else {
@@ -86,8 +90,7 @@ export function suggestCuts(summary: Summary): { cuts: Cut[]; covered: number } 
     .map((c) => ({ ...c, max: c.total * (CUTTABLE[c.category] ?? 0) }))
     .sort((a, b) => b.max - a.max);
   for (const c of candidates) {
-    if (remaining <= 0) break;
-    const cut = Math.ceil(Math.min(c.max, remaining));
+    const cut = round(c.max);
     if (cut <= 0) continue;
     cuts.push({ category: c.category, current: c.total, cut });
     remaining -= cut;
@@ -97,6 +100,40 @@ export function suggestCuts(summary: Summary): { cuts: Cut[]; covered: number } 
 
 export const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export type Period = "weekly" | "fortnightly" | "monthly";
+export const PERIOD_LABELS: Record<Period, string> = { weekly: "Semanal", fortnightly: "Quinzenal", monthly: "Mensal" };
+export function periodRange(period: Period, anchor = new Date()): { from: string; to: string } {
+  const to = anchor.toISOString().slice(0, 10);
+  const start = new Date(`${to}T12:00:00Z`);
+  start.setUTCDate(start.getUTCDate() - ({ weekly: 7, fortnightly: 15, monthly: 30 }[period] - 1));
+  return { from: start.toISOString().slice(0, 10), to };
+}
+export function filterTransactions(txs: Tx[], period: Period, account = "all", anchor = new Date()): Tx[] {
+  const { from, to } = periodRange(period, anchor);
+  return txs.filter(t => t.occurred_on >= from && t.occurred_on <= to && (account === "all" || t.account === account));
+}
+export function categorize(description: string): string {
+  const text = description.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const rules: [string, RegExp][] = [
+    ["Delivery", /ifood|rappi|delivery/], ["Moradia", /aluguel|energia|conta de luz|internet|condominio|agua/],
+    ["Mercado", /mercado|atacadao|hortifruti|pao de acucar/], ["Transporte", /uber|\b99\b|posto|combustivel|gasolina/],
+    ["Assinaturas", /netflix|spotify|disney|amazon prime|assinatura/], ["Saúde", /farmacia|hospital|medic|academia|smart fit/],
+    ["Educação", /curso|escola|faculdade/], ["Restaurantes", /restaurante|padaria|lanchonete/],
+    ["Lazer", /cinema|show|bar com amigos/], ["Compras", /shopee|renner|amazon|magalu/],
+  ];
+  return rules.find(([, pattern]) => pattern.test(text))?.[0] ?? "Outros";
+}
+export function cardSummary(txs: Tx[]) {
+  const rows = txs.filter(t => t.payment_method === "credit" && t.kind === "expense" && !t.is_transfer);
+  return { total: round(rows.reduce((sum, t) => sum + t.amount, 0)),
+    unnecessary: round(rows.filter(t => t.necessity === "unnecessary").reduce((sum, t) => sum + t.amount, 0)),
+    pending: rows.filter(t => !t.necessity || t.necessity === "review").length, rows };
+}
+export function goalProgress(target: number, contributions: number[]) {
+  const saved = round(contributions.reduce((sum, value) => sum + value, 0));
+  return { saved, remaining: round(Math.max(0, target - saved)), percent: target > 0 ? Math.min(100, saved / target * 100) : 0 };
+}
 
 /** Example data spread over the last 30 days. */
 export function sampleTransactions(today = new Date()): Tx[] {

@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_connections: {
+        Row: {
+          bank_name: string
+          created_at: string
+          id: string
+          item_id: string
+          synced_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bank_name: string
+          created_at?: string
+          id?: string
+          item_id: string
+          synced_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bank_name?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          synced_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      goal_contributions: {
+        Row: {
+          amount: number
+          created_at: string
+          goal_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          goal_id: string
+          id?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          goal_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_contributions_goal_id_user_id_fkey"
+            columns: ["goal_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "savings_goals"
+            referencedColumns: ["id", "user_id"]
+          },
+        ]
+      }
+      savings_goals: {
+        Row: {
+          account: string
+          created_at: string
+          id: string
+          name: string
+          target: number
+          user_id: string
+        }
+        Insert: {
+          account: string
+          created_at?: string
+          id?: string
+          name: string
+          target: number
+          user_id?: string
+        }
+        Update: {
+          account?: string
+          created_at?: string
+          id?: string
+          name?: string
+          target?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account: string
@@ -21,9 +107,13 @@ export type Database = {
           category: string
           created_at: string
           description: string
+          external_id: string | null
           id: string
+          is_transfer: boolean
           kind: string
+          necessity: string
           occurred_on: string
+          payment_method: string
           user_id: string
         }
         Insert: {
@@ -32,9 +122,13 @@ export type Database = {
           category?: string
           created_at?: string
           description: string
+          external_id?: string | null
           id?: string
+          is_transfer?: boolean
           kind?: string
+          necessity?: string
           occurred_on?: string
+          payment_method?: string
           user_id?: string
         }
         Update: {
@@ -43,9 +137,13 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string
+          external_id?: string | null
           id?: string
+          is_transfer?: boolean
           kind?: string
+          necessity?: string
           occurred_on?: string
+          payment_method?: string
           user_id?: string
         }
         Relationships: []
