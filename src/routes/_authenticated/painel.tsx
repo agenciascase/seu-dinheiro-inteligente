@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -85,6 +85,7 @@ function Painel() {
           </Button>
         </div>
         <div className="mx-auto max-w-6xl px-6 pb-10 pt-4">
+          <nav className="mb-5 flex flex-wrap gap-2"><Button asChild variant="secondary"><Link to="/painel">Visão geral</Link></Button><Button asChild variant="ghost" className="text-primary-foreground hover:text-primary-foreground"><Link to="/contas-a-pagar">Contas a pagar</Link></Button></nav>
           <p className="text-sm opacity-75">{PERIOD_LABELS[period]} · {account === "all" ? "Todas as contas" : account}</p>
           <div className="mt-2 grid gap-6 md:grid-cols-3">
             <Stat label="Entrou" value={brl(summary.income)} />

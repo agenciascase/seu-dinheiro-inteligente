@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Landmark, RefreshCw, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getBankToken, syncBank } from "@/lib/banking.functions";
+import { getBankToken, syncBank, findBankConnections } from "@/lib/banking.functions";
 
 const Connect = lazy(() => import("react-pluggy-connect").then(module => ({ default: module.PluggyConnect })));
 export function Banks({ connections }: { connections: { item_id: string; bank_name: string; synced_at: string | null }[] }) {
@@ -12,6 +12,8 @@ export function Banks({ connections }: { connections: { item_id: string; bank_na
   const qc = useQueryClient();
   const getToken = useServerFn(getBankToken);
   const sync = useServerFn(syncBank);
+  const find = useServerFn(findBankConnections);
+  const discover = useMutation({ mutationFn: async () => { const result = await find(); for (const itemId of result.ids) await sync({ data: { itemId } }); return result; }, onSuccess: result => { qc.invalidateQueries({ queryKey: ['finance-data'] }); toast.success(result.ids.length ? 'Contas encontradas e movimentos sincronizados.' : 'Nenhuma autorização vinculada à sua conta Cofrinho foi encontrada.'); }, onError: error => toast.error(error.message) });
   const connect = useMutation({ mutationFn: () => getToken(), onSuccess: result => {
     if (!result.configured) toast.error("A conexão aguarda o Client ID e Client Secret do seu plano Pluggy.");
     else setToken(result.token);
@@ -22,6 +24,7 @@ export function Banks({ connections }: { connections: { item_id: string; bank_na
   }, onError: error => toast.error(error.message) });
   return <section className="border-b pb-6">
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="flex items-center gap-2 text-2xl font-bold"><Landmark className="h-5 w-5" /> Minhas contas</h2><Button onClick={() => connect.mutate()} disabled={connect.isPending}><Link2 className="h-4 w-4" />{connect.isPending ? "Preparando…" : "Conectar banco"}</Button></div>
+    <Button className="mt-3" variant="outline" disabled={discover.isPending} onClick={() => discover.mutate()}><RefreshCw className="h-4 w-4" />{discover.isPending ? 'Verificando e sincronizando…' : 'Buscar contas já autorizadas'}</Button>
     <div className="mt-4 grid gap-3 sm:grid-cols-2">{["Mercado Pago", "Caixa"].map(name => {
       const linked = connections.filter(c => c.bank_name.toLowerCase().includes(name.toLowerCase()));
       return <div key={name} className="flex items-center justify-between gap-3 rounded-lg border bg-card p-4"><div><p className="font-semibold">{name}</p><p className="mt-1 text-xs text-muted-foreground">{linked.length ? "Autorizada no Pluggy" : "Aguardando sua autorização"}</p></div>{linked.map(c => <Button key={c.item_id} variant="outline" size="icon" title="Sincronizar movimentos" aria-label={`Sincronizar ${name}`} disabled={refresh.isPending} onClick={() => refresh.mutate(c.item_id)}><RefreshCw className="h-4 w-4" /></Button>)}</div>;

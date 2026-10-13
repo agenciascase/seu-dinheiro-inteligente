@@ -1,0 +1,40 @@
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { queryOptions, useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useServerFn } from '@tanstack/react-start';
+import { useState } from 'react';
+import { PiggyBank, RefreshCw, Plus, Check, Undo2, ExternalLink } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { FinanceSelect } from '@/components/finance/account-select';
+import { brl } from '@/lib/finance';
+import { billSummary, isBillPaid } from '@/lib/bills';
+import { importNotionFinance } from '@/lib/notion.functions';
+
+const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => { const result = await supabase.from('bills').select('*').order('due_on', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false }); if (result.error) throw result.error; return result.data.map(b => ({ ...b, amount: Number(b.amount) })); } });
+export const Route = createFileRoute('/_authenticated/contas-a-pagar')({
+  head: () => ({ meta: [{ title: 'Contas a pagar — Cofrinho' }, { name: 'description', content: 'Acompanhe pagamentos, entradas previstas e pendências do seu organizador financeiro.' }, { property: 'og:title', content: 'Contas a pagar — Cofrinho' }, { property: 'og:description', content: 'Contas pagas, pendentes e vencimentos em um só lugar.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(billsQuery), component: BillsPage,
+});
+function BillsPage() {
+  const { data } = useSuspenseQuery(billsQuery); const qc = useQueryClient(); const importFinance = useServerFn(importNotionFinance);
+  const [month, setMonth] = useState('all'); const [status, setStatus] = useState('pending'); const [kind, setKind] = useState('expense');
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const scoped = data.filter(b => month === 'all' || b.reference_month === month); const summary = billSummary(scoped, today);
+  const rows = scoped.filter(b => b.kind === kind && (status === 'all' || (status === 'paid' ? isBillPaid(b) : !isBillPaid(b))));
+  const importer = useMutation({ mutationFn: () => importFinance(), onSuccess: result => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success(`${result.imported} registros importados. ${result.skipped} linhas sem valor válido não importadas.`); }, onError: e => toast.error(e.message) });
+  const update = useMutation({ mutationFn: async ({ id, values }: { id: string; values: { status_override?: boolean; due_on?: string | null } }) => { const r = await supabase.from('bills').update(values).eq('id', id); if (r.error) throw r.error; }, onSuccess: () => qc.invalidateQueries({ queryKey: ['bills'] }), onError: e => toast.error(e.message) });
+  const add = useMutation({ mutationFn: async (form: FormData) => { const amount = Number(String(form.get('amount')).replace(',', '.')); if (!Number.isFinite(amount) || amount <= 0) throw new Error('Informe um valor maior que zero.'); const date = String(form.get('date')); const r = await supabase.from('bills').insert({ description: String(form.get('description')).trim(), amount, due_on: date || null, reference_month: date ? date.slice(0, 7) : 'Sem mês', kind }); if (r.error) throw r.error; }, onSuccess: () => qc.invalidateQueries({ queryKey: ['bills'] }), onError: e => toast.error(e.message) });
+  return <div className="min-h-screen">
+    <header className="bg-hero text-primary-foreground"><div className="mx-auto max-w-6xl px-6 py-5"><Link to="/painel" className="flex items-center gap-2 font-display text-xl"><PiggyBank /> Cofrinho</Link><nav className="mt-5 flex flex-wrap gap-2"><Button asChild variant="ghost" className="text-primary-foreground hover:text-primary-foreground"><Link to="/painel">Visão geral</Link></Button><Button asChild variant="secondary"><Link to="/contas-a-pagar">Contas a pagar</Link></Button></nav></div></header>
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="font-display text-3xl">Contas a pagar</h1><Button disabled={importer.isPending} onClick={() => importer.mutate()}><RefreshCw className="h-4 w-4" />{importer.isPending ? 'Importando Notion…' : 'Atualizar do Notion'}</Button></div>
+      <div className="my-7 grid gap-6 sm:grid-cols-3">{[['Falta pagar', summary.pending], ['Pago', summary.paid], ['Vencido', summary.overdue]].map(([label, value]) => <div key={label}><p className="text-sm text-muted-foreground">{label}</p><p className="font-display text-3xl">{brl(Number(value))}</p></div>)}</div>
+      <div className="flex flex-wrap items-center gap-3 border-y py-4"><FinanceSelect label="Mês das contas" value={month} onChange={setMonth} options={[{ value: 'all', label: 'Todos os meses' }, ...Array.from(new Set(data.map(b => b.reference_month))).map(m => ({ value: m, label: m || 'Sem mês' }))]} /><FinanceSelect label="Tipo de conta" value={kind} onChange={setKind} options={[{ value: 'expense', label: 'Contas a pagar' }, { value: 'income', label: 'Entradas previstas' }]} /><FinanceSelect label="Situação das contas" value={status} onChange={setStatus} options={[{ value: 'pending', label: 'Pendentes' }, { value: 'paid', label: kind === 'expense' ? 'Pagas' : 'Recebidas' }, { value: 'all', label: 'Todas' }]} /></div>
+      <form className="mt-5 flex flex-wrap gap-2" onSubmit={e => { e.preventDefault(); const form = e.currentTarget; add.mutate(new FormData(form), { onSuccess: () => form.reset() }); }}><Input name="description" required maxLength={300} aria-label="Descrição da conta" placeholder="Descrição da conta" className="min-w-40 flex-1" /><Input name="amount" required aria-label="Valor da conta" placeholder="Valor" inputMode="decimal" className="w-32" /><Input name="date" aria-label="Vencimento da nova conta" type="date" className="w-44" /><Button disabled={add.isPending}><Plus className="h-4 w-4" />Adicionar</Button></form>
+      {rows.length === 0 && <p className="py-10 text-muted-foreground">Nenhuma conta nesta seleção.</p>}
+      <ul className="mt-5 divide-y">{rows.map(b => { const paid = isBillPaid(b); return <li key={b.id} className="flex flex-wrap items-center gap-4 py-5"><div className="min-w-40 flex-1"><p className="font-semibold break-words">{b.description}</p><p className="mt-1 text-xs text-muted-foreground">{b.reference_month} · {b.account} · {b.source === 'notion' ? 'Notion' : 'Manual'}</p><p className={`mt-1 text-xs ${!paid && b.due_on && b.due_on < today ? 'text-destructive' : 'text-muted-foreground'}`}>{paid ? (b.kind === 'expense' ? 'Pago' : 'Recebido') : b.due_on && b.due_on < today ? 'Vencida' : 'Pendente'}</p></div><strong className="w-28 text-right">{brl(b.amount)}</strong><Input type="date" aria-label={`Vencimento de ${b.description}`} className="w-40" value={b.due_on ?? ''} disabled={update.isPending} onChange={e => update.mutate({ id: b.id, values: { due_on: e.target.value || null } })} /><Button variant={paid ? 'outline' : 'default'} size="icon" title={paid ? 'Marcar como pendente' : kind === 'expense' ? 'Marcar como paga' : 'Marcar como recebida'} aria-label={`${paid ? 'Marcar como pendente' : kind === 'expense' ? 'Marcar como paga' : 'Marcar como recebida'}: ${b.description}`} disabled={update.isPending} onClick={() => update.mutate({ id: b.id, values: { status_override: !paid } })}>{paid ? <Undo2 className="h-4 w-4" /> : <Check className="h-4 w-4" />}</Button>{b.source_url && <Button variant="ghost" size="icon" asChild><a href={b.source_url} target="_blank" rel="noreferrer" title="Abrir no Notion" aria-label={`Abrir ${b.description} no Notion`}><ExternalLink className="h-4 w-4" /></a></Button>}</li>; })}</ul>
+    </main>
+  </div>;
+}
