@@ -1,4 +1,7 @@
 # Cofrinho
+- [ ] Sync the requesting user's linked Pluggy accounts and verify real movements.
+- [ ] Import the user's Notion organizer with confirmed property mapping and owner-only access.
+- [ ] Add and verify a Contas a pagar tab with paid/pending statuses.
 - [x] Navy/yellow and motivation; minimum savings without ceiling.
 - [x] Period/account filters, automatic categorization, credit card analysis and financial consultancy.
 - [x] Personal goals and recorded contributions by account.
