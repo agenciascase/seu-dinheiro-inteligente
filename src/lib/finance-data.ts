@@ -7,7 +7,7 @@ type FinanceTransaction = Omit<Database["public"]["Tables"]["transactions"]["Row
 
 // Every consumer of this cache key must receive the same complete data shape.
 export const financeDataQuery = queryOptions({
-  queryKey: ["finance-data"],
+  queryKey: ["finance-data", "complete-v1"],
   queryFn: async () => {
     const [transactions, goals, contributions, connections] = await Promise.all([
       supabase.from("transactions").select("*").order("occurred_on", { ascending: false }),
