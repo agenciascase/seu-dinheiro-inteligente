@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { billSummary, mapNotionBill, money, openBillsForMonth } from './bills';
+import { availableBillMonths, billSummary, mapNotionBill, money, monthLabel, openBillsForMonth } from './bills';
 it('imports BRL values from organizer text', () => { expect(money('R$ 1.330,00')).toBe(1330); expect(money('Curso 330')).toBeNull(); });
 it('uses the Pago checkbox and does not invent dates from installment descriptions', () => {
   expect(mapNotionBill({ id: 'a', properties: { 'Saída': { title: [{ plain_text: 'R$ 330,00' }] }, 'Descrição': { rich_text: [{ plain_text: 'Ana Mara 01/01' }] }, 'Pago': { checkbox: true } } }, 'Outubro')).toMatchObject({ amount: 330, paid: true, due_on: null, kind: 'expense' });
