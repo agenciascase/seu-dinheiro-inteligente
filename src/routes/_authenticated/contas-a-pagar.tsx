@@ -13,7 +13,7 @@ import { openBillsForMonth, billDisplayDescription, availableBillMonths, monthLa
 import { importNotionFinance } from '@/lib/notion.functions';
 import { BankPanel, bankDataQuery } from '@/components/finance/bank-panel';
 
-const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => { const result = await supabase.from('bills').select('*').order('due_on', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false }); if (result.error) throw result.error; return result.data.map(b => ({ ...b, amount: Number(b.amount) })); } });
+const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => { const result = await supabase.from('bills').select('*').order('due_on', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false }); if (result.error) throw result.error; return result.data.map(b => ({ ...b, amount: Number(b.amount), reference_month: b.reference_month ?? '' })); } });
 export const Route = createFileRoute('/_authenticated/contas-a-pagar')({
   head: () => ({ meta: [{ title: 'Contas a pagar — Meu Organizador' }, { name: 'description', content: 'Suas contas em aberto, com pendências anteriores reunidas no mês atual.' }, { property: 'og:title', content: 'Contas a pagar — Meu Organizador' }, { property: 'og:description', content: 'Acompanhe e quite suas contas em aberto.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(billsQuery), context.queryClient.ensureQueryData(bankDataQuery)]), component: BillsPage,
