@@ -1,5 +1,6 @@
 # Cofrinho
 - [ ] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; verify rules and signed-in flow.
+- [ ] Verify Pluggy authorization and synchronize the user's accounts, expenses and income; retain access within the simplified experience.
 - [ ] Sync the requesting user's linked Pluggy accounts and verify real movements.
 - [ ] Import the user's Notion organizer with confirmed property mapping and owner-only access.
 - [ ] Add and verify a Contas a pagar tab with paid/pending statuses.
