@@ -45,9 +45,9 @@ function Painel() {
   const { data } = useSuspenseQuery(txQuery);
   const {data:planning}=useSuspenseQuery(planningDataQuery);
   const [month,setMonth]=useState(currentMonth);
-  const plan=monthlyPlan(data.txs,planning.bills,data.contributions,planning.withdrawals,month);
   const [period, setPeriod] = useState<Period>("monthly");
   const [account, setAccount] = useState("all");
+  const plan=monthlyPlan(data.txs.filter(t=>account==='all'||t.account===account),planning.bills.filter(b=>account==='all'||b.account===account),data.contributions.filter(c=>account==='all'||data.goals.some(g=>g.id===c.goal_id&&g.account===account)),planning.withdrawals.filter(c=>account==='all'||data.goals.some(g=>g.id===c.goal_id&&g.account===account)),month);
   const txs = useMemo(() => filterTransactions(data.txs, period, account) as (Tx & { id: string })[], [data.txs, period, account]);
   const summary = useMemo(() => summarize(txs), [txs]);
   const { cuts, covered } = useMemo(() => suggestCuts(summary), [summary]);
@@ -142,7 +142,7 @@ function Painel() {
 
             <div id="cartoes" className="scroll-mt-6"><Cards txs={txs} /></div>
             <AiTips key={`${period}-${account}`} period={period} account={account} />
-            <div id="patrimonio" className="scroll-mt-6"><Goals goals={data.goals} contributions={data.contributions} accounts={accounts} /></div>
+            <section id="patrimonio"><div className="flex justify-between gap-3"><h2 className="text-2xl">Progresso dos cofrinhos</h2><Button asChild variant="outline"><Link to="/metas">Meus objetivos</Link></Button></div><div className="mt-4 grid gap-4 sm:grid-cols-2">{data.goals.map(g=>{const saved=data.contributions.filter(c=>c.goal_id===g.id).reduce((s,c)=>s+Number(c.amount),0)-planning.withdrawals.filter(w=>w.goal_id===g.id).reduce((s,w)=>s+Number(w.amount),0);return <article key={g.id} className="rounded-lg border bg-card p-5"><h3 className="text-xl">{g.name}</h3><p className="mt-2 text-sm">{brl(saved)} de {brl(Number(g.target))} · {Math.round(saved/Number(g.target)*100)}%</p><p className="mt-1 text-xs text-muted-foreground">{g.allocation_percent}% da receita · {g.account}</p></article>;})}</div></section>
 
             <section className="border-t pt-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
