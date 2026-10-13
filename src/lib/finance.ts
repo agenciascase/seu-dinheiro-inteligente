@@ -83,7 +83,7 @@ export function suggestCuts(summary: Summary): { cuts: Cut[]; covered: number } 
   const cuts: Cut[] = [];
   const candidates = summary.byCategory
     .filter((c) => CUTTABLE[c.category] !== undefined)
-    .map((c) => ({ ...c, max: c.total * CUTTABLE[c.category] }))
+    .map((c) => ({ ...c, max: c.total * (CUTTABLE[c.category] ?? 0) }))
     .sort((a, b) => b.max - a.max);
   for (const c of candidates) {
     if (remaining <= 0) break;
