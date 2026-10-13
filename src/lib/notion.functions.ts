@@ -7,7 +7,7 @@ export const importNotionFinance = createServerFn({ method: 'POST' }).middleware
   if (error) throw new Error(error.message);
   if (!access) throw new Error('Seu organizador do Notion ainda não foi autorizado para esta conta.');
   const key = process.env['NOTION_API_KEY']; const gatewayKey = process.env['LOVABLE_API_KEY'];
-  if (!key || !gatewayKey) throw new Error('Conecte o Notion ao Cofrinho para importar suas contas.');
+  if (!key || !gatewayKey) throw new Error('Conecte o Notion ao Meu Organizador para importar suas contas.');
   const request = async <T,>(path: string, body?: object): Promise<T> => {
     const response = await fetch(`https://connector-gateway.lovable.dev/notion/v1${path}`, { method: body ? 'POST' : 'GET', headers: { Authorization: `Bearer ${gatewayKey}`, 'X-Connection-Api-Key': key, 'Notion-Version': '2025-09-03', 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}) });
     if (!response.ok) { const detail = await response.text(); console.error(`Notion [${response.status}]: ${detail}`); throw new Error(`Notion [${response.status}]: ${detail}`); }

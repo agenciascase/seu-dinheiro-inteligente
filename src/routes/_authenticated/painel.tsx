@@ -33,9 +33,9 @@ const txQuery = queryOptions({
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
-      { title: "Meu painel — Cofrinho" },
+      { title: "Meu painel — Meu Organizador" },
       { name: "description", content: "Contas, cartões, consultoria e metas pessoais para guardar mais." },
-      { property: "og:title", content: "Meu painel — Cofrinho" },
+      { property: "og:title", content: "Meu painel — Meu Organizador" },
       { property: "og:description", content: "Análise semanal, quinzenal e mensal das suas contas." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -78,7 +78,7 @@ function Painel() {
       <header className="bg-hero text-primary-foreground">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <span className="flex items-center gap-2 font-display text-xl">
-            <PiggyBank className="h-6 w-6" /> Cofrinho
+            <PiggyBank className="h-6 w-6" /> Meu Organizador
           </span>
           <Button variant="ghost" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
             <LogOut className="h-4 w-4" /> Sair

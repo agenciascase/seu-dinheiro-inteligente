@@ -13,7 +13,7 @@ export function Banks({ connections }: { connections: { item_id: string; bank_na
   const getToken = useServerFn(getBankToken);
   const sync = useServerFn(syncBank);
   const find = useServerFn(findBankConnections);
-  const discover = useMutation({ mutationFn: async () => { const result = await find(); for (const itemId of result.ids) await sync({ data: { itemId } }); return result; }, onSuccess: result => { qc.invalidateQueries({ queryKey: ['finance-data'] }); toast.success(result.ids.length ? 'Contas encontradas e movimentos sincronizados.' : 'Nenhuma autorização vinculada à sua conta Cofrinho foi encontrada.'); }, onError: error => toast.error(error.message) });
+  const discover = useMutation({ mutationFn: async () => { const result = await find(); for (const itemId of result.ids) await sync({ data: { itemId } }); return result; }, onSuccess: result => { qc.invalidateQueries({ queryKey: ['finance-data'] }); toast.success(result.ids.length ? 'Contas encontradas e movimentos sincronizados.' : 'Nenhuma autorização vinculada à sua conta Meu Organizador foi encontrada.'); }, onError: error => toast.error(error.message) });
   const connect = useMutation({ mutationFn: () => getToken(), onSuccess: result => {
     if (!result.configured) toast.error("A conexão aguarda o Client ID e Client Secret do seu plano Pluggy.");
     else setToken(result.token);
