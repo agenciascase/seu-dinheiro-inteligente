@@ -46,6 +46,18 @@ describe("shared finance data", () => {
     client.clear();
   });
 
+  it("ignores the legacy bank-only cache and still supports shared invalidation", async () => {
+    const client = new QueryClient();
+    client.setQueryData(["finance-data"], { txs: [], connections: [] });
+    const data = await client.ensureQueryData(financeDataQuery);
+    expect(data.goals).toEqual([]);
+    expect(data.contributions).toEqual([]);
+    expect(from).toHaveBeenCalledTimes(4);
+    await client.invalidateQueries({ queryKey: ["finance-data"] });
+    expect(client.getQueryState(financeDataQuery.queryKey)?.isInvalidated).toBe(true);
+    client.clear();
+  });
+
   it("does not cache an incomplete result when a goals read fails", async () => {
     results.savings_goals.error = new Error("Goals read failed");
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
