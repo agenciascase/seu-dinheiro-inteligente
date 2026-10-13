@@ -75,27 +75,18 @@ function Painel() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-hero text-primary-foreground">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <span className="flex items-center gap-2 font-display text-xl">
-            <PiggyBank className="h-6 w-6" /> Meu Organizador
-          </span>
-          <Button variant="ghost" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
-            <LogOut className="h-4 w-4" /> Sair
-          </Button>
-        </div>
-        <div className="mx-auto max-w-6xl px-6 pb-10 pt-4">
-          <nav className="mb-5 flex flex-wrap gap-2"><Button asChild variant="secondary"><Link to="/painel">Visão geral</Link></Button><Button asChild variant="ghost" className="text-primary-foreground hover:text-primary-foreground"><Link to="/contas-a-pagar">Contas a pagar</Link></Button></nav>
-          <p className="text-sm opacity-75">{PERIOD_LABELS[period]} · {account === "all" ? "Todas as contas" : account}</p>
+      <AppHeader active="orcamento" onSignOut={signOut}>
+        <div className="mt-6 rounded-lg border bg-card p-5">
+          <p className="text-sm text-muted-foreground">{PERIOD_LABELS[period]} · {account === "all" ? "Todas as contas" : account}</p>
           <div className="mt-2 grid gap-6 md:grid-cols-3">
             <Stat label="Entrou" value={brl(summary.income)} />
             <Stat label="Saiu" value={brl(summary.expenses)} />
             <Stat label="Sobrou" value={brl(summary.leftover)} highlight />
           </div>
-          <p className="mt-6 text-sm text-primary-foreground/80">Referência inicial: pelo menos {brl(SAVINGS_GOAL)} por mês — quanto mais sobrar, melhor.</p>
-          <blockquote className="mt-5 max-w-3xl border-l-2 border-accent pl-4 font-display text-lg text-accent">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
+          <p className="mt-4 text-sm text-muted-foreground">Referência inicial: pelo menos {brl(SAVINGS_GOAL)} por mês — quanto mais sobrar, melhor.</p>
         </div>
-      </header>
+        <blockquote className="mt-5 max-w-3xl border-l-2 border-primary pl-4 font-display text-lg text-primary">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
+      </AppHeader>
 
       <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
