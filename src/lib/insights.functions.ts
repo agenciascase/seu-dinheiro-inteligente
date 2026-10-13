@@ -32,7 +32,7 @@ Cortes sugeridos pelas regras: ${cuts.map((c) => `${c.category} -${brl(c.cut)}`)
 Lançamentos:
 ${topItems}`;
 
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("IA não configurada.");
     const { createOpenAI } = await import("@ai-sdk/openai");
     const { streamText } = await import("ai");
