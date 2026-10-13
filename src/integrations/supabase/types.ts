@@ -41,6 +41,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bills: {
+        Row: {
+          account: string
+          amount: number
+          created_at: string
+          description: string
+          due_on: string | null
+          external_id: string | null
+          id: string
+          kind: string
+          paid: boolean
+          reference_month: string
+          source: string
+          source_url: string | null
+          status_override: boolean | null
+          user_id: string
+        }
+        Insert: {
+          account?: string
+          amount: number
+          created_at?: string
+          description: string
+          due_on?: string | null
+          external_id?: string | null
+          id?: string
+          kind?: string
+          paid?: boolean
+          reference_month?: string
+          source?: string
+          source_url?: string | null
+          status_override?: boolean | null
+          user_id?: string
+        }
+        Update: {
+          account?: string
+          amount?: number
+          created_at?: string
+          description?: string
+          due_on?: string | null
+          external_id?: string | null
+          id?: string
+          kind?: string
+          paid?: boolean
+          reference_month?: string
+          source?: string
+          source_url?: string | null
+          status_override?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       goal_contributions: {
         Row: {
           amount: number
@@ -72,6 +123,21 @@ export type Database = {
             referencedColumns: ["id", "user_id"]
           },
         ]
+      }
+      notion_finance_access: {
+        Row: {
+          organizer_page_id: string
+          user_id: string
+        }
+        Insert: {
+          organizer_page_id: string
+          user_id: string
+        }
+        Update: {
+          organizer_page_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       savings_goals: {
         Row: {
