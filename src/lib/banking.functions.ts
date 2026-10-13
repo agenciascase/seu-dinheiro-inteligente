@@ -3,6 +3,30 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { categorize } from "./finance";
 
+export const findBankConnections = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  const clientId = process.env['PLUGGY_CLIENT_ID']; const clientSecret = process.env['PLUGGY_CLIENT_SECRET'];
+  if (!clientId || !clientSecret) throw new Error('Configure as credenciais Pluggy.');
+  const auth = await fetch('https://api.pluggy.ai/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ clientId, clientSecret }) });
+  if (!auth.ok) throw new Error(`Pluggy: autenticação indisponível (${auth.status}).`);
+  const { apiKey } = await auth.json() as { apiKey: string };
+  let after: string | null = null; const ids: string[] = [];
+  do {
+    const url = new URL('https://api.pluggy.ai/v2/items'); url.searchParams.set('clientUserId', context.userId); if (after) url.searchParams.set('after', after);
+    const response = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
+    if (!response.ok) { const detail = await response.text(); console.error(`Pluggy [${response.status}]: ${detail}`); throw new Error(`Pluggy [${response.status}]: ${detail}`); }
+    const page = await response.json() as { results: { id: string; clientUserId?: string; connector: { name: string } }[]; next?: string | null };
+    const owned = page.results.filter(item => item.clientUserId === context.userId);
+    if (owned.length) {
+      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+      const result = await supabaseAdmin.from('bank_connections').upsert(owned.map(item => ({ user_id: context.userId, item_id: item.id, bank_name: item.connector.name })), { onConflict: 'item_id' });
+      if (result.error) throw new Error(result.error.message);
+      ids.push(...owned.map(item => item.id));
+    }
+    after = page.next ? new URL(page.next, 'https://api.pluggy.ai/v2/items').searchParams.get('after') : null;
+  } while (after);
+  return { ids };
+});
+
 export const getBankToken = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

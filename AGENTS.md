@@ -15,3 +15,6 @@
 - Personal goals and contributions persist separately from transactions and do not move bank funds — prevents recorded savings from being mistaken for transfers.
 - Pluggy credentials stay server-side; every item must match the authenticated clientUserId before persistence or synchronization — prevents cross-user bank data access.
 - Banking, goals and credit review use focused finance components and pure helpers — keeps the main finance screen maintainable and calculation rules testable.
+- Bills are separate from bank transactions and use tested pure mapping/summary helpers — avoids double-counting planned payments as bank expenses.
+- Shared Notion credentials are accessible only after an owner-scoped, non-user-writable organizer authorization — prevents other app users from importing the builder's private workspace.
+- Notion refreshes preserve local payment overrides and never infer payment from bank amount matches — keeps reviewed statuses stable and avoids false reconciliation.
