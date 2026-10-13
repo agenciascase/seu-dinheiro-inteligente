@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Cofrinho — veja seus gastos e guarde R$ 500 por mês" },
+      { title: "Cofrinho — organize seu dinheiro e guarde mais" },
       {
         name: "description",
-        content: "Organizador financeiro que separa seus gastos por categoria e avisa onde cortar para guardar R$ 500 por mês.",
+        content: "Suas contas, cartões, metas pessoais e consultoria financeira em um só lugar.",
       },
-      { property: "og:title", content: "Cofrinho — guarde R$ 500 por mês" },
-      { property: "og:description", content: "Seus gastos separados por categoria e dicas de economia com IA." },
+      { property: "og:title", content: "Cofrinho — organize seu dinheiro e guarde mais" },
+      { property: "og:description", content: "Análise financeira, cartões e metas para guardar cada vez mais." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
 const features = [
   { icon: PieChart, title: "Gastos separados", text: "Mercado, delivery, assinaturas, lazer — tudo organizado por categoria." },
   { icon: BellRing, title: "Alertas de corte", text: "Mostramos exatamente onde diminuir para fechar o mês no azul." },
-  { icon: Sparkles, title: "Dicas com IA", text: "Um assessor que lê seus lançamentos e sugere economias reais." },
+  { icon: Sparkles, title: "Consultoria financeira", text: "Um plano de ação para suas contas, cartões e metas pessoais." },
 ];
 
 function Index() {
@@ -38,21 +38,22 @@ function Index() {
               Entrar
             </Link>
           </nav>
-          <div className="py-24 md:py-32">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-accent">Meta: R$ 500/mês</p>
+          <div className="py-12 md:py-16">
+            <p className="mb-4 text-sm font-semibold text-accent">Seu dinheiro, com direção.</p>
             <h1 className="max-w-3xl text-5xl font-bold leading-[1.05] md:text-7xl">
-              Descubra para onde vai seu dinheiro. E guarde mais.
+              Cofrinho
             </h1>
             <p className="mt-6 max-w-xl text-lg opacity-85">
               O Cofrinho junta seus gastos, separa por categoria e te avisa o que dá para cortar.
             </p>
+            <blockquote className="mt-6 max-w-2xl border-l-2 border-accent pl-4 font-display text-lg text-accent">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
             <Button asChild variant="hero" size="lg" className="mt-10 h-12 px-8 text-base">
               <Link to="/auth">Começar grátis</Link>
             </Button>
           </div>
         </div>
       </section>
-      <section className="mx-auto grid max-w-5xl gap-6 px-6 py-20 md:grid-cols-3">
+      <section className="mx-auto grid max-w-5xl gap-6 px-6 py-10 md:grid-cols-3">
         {features.map((f) => (
           <div key={f.title} className="rounded-2xl border bg-card p-6 shadow-soft">
             <f.icon className="h-6 w-6 text-primary" />

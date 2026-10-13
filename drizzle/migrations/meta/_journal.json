@@ -8,6 +8,13 @@
       "when": 1791899158757,
       "tag": "0000_create_transactions",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791928634002,
+      "tag": "0001_goals_cards_and_bank_connections",
+      "breakpoints": true
     }
   ]
 }
