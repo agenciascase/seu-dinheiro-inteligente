@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { AppHeader } from "@/components/finance/app-header";
 import { useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -148,9 +149,9 @@ function Painel() {
               </div>
             </section>
 
-            <Cards txs={txs} />
+            <div id="cartoes" className="scroll-mt-6"><Cards txs={txs} /></div>
             <AiTips key={`${period}-${account}`} period={period} account={account} />
-            <Goals goals={data.goals} contributions={data.contributions} accounts={accounts} />
+            <div id="patrimonio" className="scroll-mt-6"><Goals goals={data.goals} contributions={data.contributions} accounts={accounts} /></div>
 
             <section className="border-t pt-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
