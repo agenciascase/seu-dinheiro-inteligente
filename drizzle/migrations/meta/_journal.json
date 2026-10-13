@@ -15,6 +15,13 @@
       "when": 1791928634002,
       "tag": "0001_goals_cards_and_bank_connections",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791930941472,
+      "tag": "0002_bills_and_notion_owner",
+      "breakpoints": true
     }
   ]
 }
