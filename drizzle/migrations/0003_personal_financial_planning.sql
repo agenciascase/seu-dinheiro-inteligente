@@ -1,0 +1,48 @@
+ALTER TABLE public.savings_goals ADD COLUMN allocation_percent numeric(5,2) NOT NULL DEFAULT 0 CHECK (allocation_percent BETWEEN 0 AND 100), ADD COLUMN icon text NOT NULL DEFAULT 'target', ADD COLUMN color text NOT NULL DEFAULT 'primary', ADD COLUMN deadline date;
+ALTER TABLE public.goal_contributions ADD COLUMN income_id uuid, ADD COLUMN occurred_on date NOT NULL DEFAULT CURRENT_DATE;
+CREATE UNIQUE INDEX contributions_income_goal ON public.goal_contributions(goal_id,income_id) WHERE income_id IS NOT NULL;
+ALTER TABLE public.bills ADD COLUMN category text NOT NULL DEFAULT 'Outros', ADD COLUMN recurring boolean NOT NULL DEFAULT false, ADD COLUMN due_day integer CHECK (due_day BETWEEN 1 AND 31), ADD COLUMN notes text NOT NULL DEFAULT '', ADD COLUMN recurrence_origin uuid, ADD COLUMN transaction_id uuid, ADD COLUMN paid_on date;
+CREATE UNIQUE INDEX bill_recurrence_month ON public.bills(user_id,recurrence_origin,reference_month) WHERE recurrence_origin IS NOT NULL;
+CREATE TABLE public.goal_withdrawals(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL DEFAULT auth.uid(), goal_id uuid NOT NULL, amount numeric(12,2) NOT NULL CHECK(amount > 0), occurred_on date NOT NULL DEFAULT CURRENT_DATE, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(goal_id,user_id) REFERENCES public.savings_goals(id,user_id) ON DELETE CASCADE);
+GRANT SELECT,INSERT,UPDATE,DELETE ON public.goal_withdrawals TO authenticated; GRANT ALL ON public.goal_withdrawals TO service_role;
+ALTER TABLE public.goal_withdrawals ENABLE ROW LEVEL SECURITY; CREATE POLICY withdrawals_owner ON public.goal_withdrawals FOR ALL TO authenticated USING(user_id=auth.uid()) WITH CHECK(user_id=auth.uid());
+CREATE TABLE public.category_budgets(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL DEFAULT auth.uid(), category text NOT NULL, monthly_limit numeric(12,2) NOT NULL CHECK(monthly_limit > 0), UNIQUE(user_id,category));
+GRANT SELECT,INSERT,UPDATE,DELETE ON public.category_budgets TO authenticated; GRANT ALL ON public.category_budgets TO service_role;
+ALTER TABLE public.category_budgets ENABLE ROW LEVEL SECURITY; CREATE POLICY budgets_owner ON public.category_budgets FOR ALL TO authenticated USING(user_id=auth.uid()) WITH CHECK(user_id=auth.uid());
+CREATE TABLE public.month_closings(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL DEFAULT auth.uid(), month text NOT NULL CHECK(month ~ '^\d{4}-\d{2}$'), snapshot jsonb NOT NULL, closed_at timestamptz NOT NULL DEFAULT now(), UNIQUE(user_id,month));
+GRANT SELECT,INSERT ON public.month_closings TO authenticated; GRANT ALL ON public.month_closings TO service_role;
+ALTER TABLE public.month_closings ENABLE ROW LEVEL SECURITY; CREATE POLICY closings_read ON public.month_closings FOR SELECT TO authenticated USING(user_id=auth.uid()); CREATE POLICY closings_insert ON public.month_closings FOR INSERT TO authenticated WITH CHECK(user_id=auth.uid());
+CREATE OR REPLACE FUNCTION public.allocate_income_goals() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ BEGIN
+IF TG_OP='DELETE' THEN DELETE FROM public.goal_contributions WHERE income_id=OLD.id AND user_id=OLD.user_id; RETURN OLD; END IF;
+IF TG_OP='UPDATE' THEN DELETE FROM public.goal_contributions WHERE income_id=NEW.id AND user_id=NEW.user_id; END IF;
+IF NEW.kind='income' AND NOT NEW.is_transfer THEN INSERT INTO public.goal_contributions(user_id,goal_id,amount,income_id,occurred_on) SELECT NEW.user_id,g.id,round(NEW.amount*g.allocation_percent/100,2),NEW.id,NEW.occurred_on FROM public.savings_goals g WHERE g.user_id=NEW.user_id AND g.allocation_percent>0 AND round(NEW.amount*g.allocation_percent/100,2)>0; END IF; RETURN NEW; END $$;
+CREATE TRIGGER allocate_income_goals AFTER INSERT OR DELETE OR UPDATE OF amount,kind,is_transfer,occurred_on ON public.transactions FOR EACH ROW EXECUTE FUNCTION public.allocate_income_goals();
+CREATE OR REPLACE FUNCTION public.validate_goal_percent() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ BEGIN
+PERFORM pg_advisory_xact_lock(hashtext(NEW.user_id::text)); IF (SELECT coalesce(sum(allocation_percent),0) FROM public.savings_goals WHERE user_id=NEW.user_id AND id<>NEW.id)+NEW.allocation_percent>100 THEN RAISE EXCEPTION 'A soma dos percentuais das metas não pode ultrapassar 100%%.'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER validate_goal_percent BEFORE INSERT OR UPDATE ON public.savings_goals FOR EACH ROW EXECUTE FUNCTION public.validate_goal_percent();
+CREATE OR REPLACE FUNCTION public.validate_goal_withdrawal() RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ DECLARE balance numeric; BEGIN
+PERFORM pg_advisory_xact_lock(hashtext(NEW.goal_id::text)); SELECT coalesce(sum(amount),0) INTO balance FROM public.goal_contributions WHERE goal_id=NEW.goal_id AND user_id=NEW.user_id; balance:=balance-(SELECT coalesce(sum(amount),0) FROM public.goal_withdrawals WHERE goal_id=NEW.goal_id AND user_id=NEW.user_id AND id<>NEW.id); IF NEW.amount>balance THEN RAISE EXCEPTION 'Retirada maior que a reserva disponível.'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER validate_goal_withdrawal BEFORE INSERT OR UPDATE ON public.goal_withdrawals FOR EACH ROW EXECUTE FUNCTION public.validate_goal_withdrawal();
+CREATE OR REPLACE FUNCTION public.pay_financial_bill(bill_id uuid, existing_transaction uuid DEFAULT NULL) RETURNS void LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ DECLARE b public.bills; tx uuid; BEGIN
+SELECT * INTO b FROM public.bills WHERE id=bill_id AND user_id=auth.uid() FOR UPDATE; IF b.id IS NULL THEN RAISE EXCEPTION 'Conta não encontrada.'; END IF; IF coalesce(b.status_override,b.paid) THEN RETURN; END IF;
+IF existing_transaction IS NOT NULL THEN SELECT id INTO tx FROM public.transactions WHERE id=existing_transaction AND user_id=auth.uid() AND kind='expense' AND NOT is_transfer; IF tx IS NULL THEN RAISE EXCEPTION 'Despesa não encontrada.'; END IF;
+ELSE INSERT INTO public.transactions(user_id,description,amount,kind,category,account,occurred_on) VALUES(auth.uid(),b.description,b.amount,'expense',b.category,b.account,(now() AT TIME ZONE 'America/Sao_Paulo')::date) RETURNING id INTO tx; END IF;
+UPDATE public.bills SET status_override=true,paid_on=(now() AT TIME ZONE 'America/Sao_Paulo')::date,transaction_id=tx WHERE id=b.id AND user_id=auth.uid(); END $$;
+GRANT EXECUTE ON FUNCTION public.pay_financial_bill(uuid,uuid) TO authenticated; REVOKE EXECUTE ON FUNCTION public.pay_financial_bill(uuid,uuid) FROM PUBLIC,anon;
+CREATE OR REPLACE FUNCTION public.ensure_recurring_bills(target_month text) RETURNS void LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ DECLARE start_date date; BEGIN
+IF target_month !~ '^\d{4}-\d{2}$' THEN RAISE EXCEPTION 'Mês inválido.'; END IF; start_date:=(target_month||'-01')::date;
+INSERT INTO public.bills(user_id,description,amount,category,recurring,due_day,notes,account,reference_month,due_on,recurrence_origin)
+SELECT auth.uid(),b.description,b.amount,b.category,true,b.due_day,b.notes,b.account,target_month,start_date+least(coalesce(b.due_day,extract(day FROM b.due_on)::int,1),extract(day FROM (start_date+interval '1 month -1 day'))::int)-1,coalesce(b.recurrence_origin,b.id)
+FROM public.bills b WHERE b.user_id=auth.uid() AND b.recurring AND b.reference_month<target_month AND NOT EXISTS(SELECT 1 FROM public.bills n WHERE n.user_id=auth.uid() AND coalesce(n.recurrence_origin,n.id)=coalesce(b.recurrence_origin,b.id) AND n.reference_month=target_month)
+AND b.id=(SELECT x.id FROM public.bills x WHERE x.user_id=auth.uid() AND coalesce(x.recurrence_origin,x.id)=coalesce(b.recurrence_origin,b.id) ORDER BY x.reference_month DESC,x.created_at DESC LIMIT 1)
+ON CONFLICT DO NOTHING; END $$;
+GRANT EXECUTE ON FUNCTION public.ensure_recurring_bills(text) TO authenticated; REVOKE EXECUTE ON FUNCTION public.ensure_recurring_bills(text) FROM PUBLIC,anon;
+CREATE OR REPLACE FUNCTION public.close_financial_month(target_month text) RETURNS void LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $$ DECLARE inc numeric; exp numeric; fixed numeric; saved numeric; start_date date; end_date date; BEGIN
+IF target_month !~ '^\d{4}-\d{2}$' THEN RAISE EXCEPTION 'Mês inválido.'; END IF; start_date:=(target_month||'-01')::date; end_date:=(start_date+interval '1 month')::date;
+IF start_date>date_trunc('month',now() AT TIME ZONE 'America/Sao_Paulo') THEN RAISE EXCEPTION 'Não é possível fechar mês futuro.'; END IF;
+SELECT coalesce(sum(amount) FILTER(WHERE kind='income'),0),coalesce(sum(amount) FILTER(WHERE kind='expense'),0) INTO inc,exp FROM public.transactions WHERE user_id=auth.uid() AND NOT is_transfer AND occurred_on>=start_date AND occurred_on<end_date;
+SELECT coalesce(sum(amount),0) INTO fixed FROM public.bills WHERE user_id=auth.uid() AND kind='expense' AND reference_month=target_month;
+SELECT (SELECT coalesce(sum(amount),0) FROM public.goal_contributions WHERE user_id=auth.uid() AND occurred_on>=start_date AND occurred_on<end_date)-(SELECT coalesce(sum(amount),0) FROM public.goal_withdrawals WHERE user_id=auth.uid() AND occurred_on>=start_date AND occurred_on<end_date) INTO saved;
+INSERT INTO public.month_closings(user_id,month,snapshot) VALUES(auth.uid(),target_month,jsonb_build_object('income',inc,'expenses',exp,'fixed',fixed,'saved',saved,'final',inc-exp-saved)) ON CONFLICT(user_id,month) DO NOTHING;
+PERFORM public.ensure_recurring_bills(to_char(end_date,'YYYY-MM')); END $$;
+GRANT EXECUTE ON FUNCTION public.close_financial_month(text) TO authenticated; REVOKE EXECUTE ON FUNCTION public.close_financial_month(text) FROM PUBLIC,anon;

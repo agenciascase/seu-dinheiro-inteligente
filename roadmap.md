@@ -1,4 +1,5 @@
 # Meu Organizador
+- [ ] Sync authorized real Pluggy accounts and read back real income/expenses in Visão geral; bank consent must be given by the account holder.
 - [ ] Expand personal planning: monthly dashboard, income/expense editing, recurring bills, percentage goals and withdrawals, category budgets, calendar, month closing/history, reports/simulation/alerts, search and PDF/Excel/CSV exports.
 - [ ] Verify saved Pluggy app and replace credentials through secure form if user chooses their production app; never delete bank records to change the app label.
 - [x] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; rules and signed-in payment persistence verified, no runtime errors or mobile overflow.
