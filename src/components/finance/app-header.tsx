@@ -18,7 +18,12 @@ export function AppHeader({ active, onSignOut, children }: { active: Tab; onSign
           </Link>
           {onSignOut && <Button variant="ghost" onClick={onSignOut}><LogOut className="h-4 w-4" /> Sair</Button>}
         </div>
-        <nav className="mt-5" aria-label="Seções"><Link to="/contas-a-pagar" className="inline-block border-b-2 border-primary pb-2 text-sm font-semibold text-primary" aria-current="page">Contas a pagar</Link></nav>
+        <nav className="mt-5 flex gap-6" aria-label="Seções">
+          {([["/painel", "Visão geral", active !== "contas"], ["/contas-a-pagar", "Contas a pagar", active === "contas"]] as const).map(([to, label, on]) => (
+            <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`inline-block border-b-2 pb-2 text-sm font-semibold ${on ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>{label}</Link>
+          ))}
+        </nav>
+        {children}
       </div>
     </header>
   );
