@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-router";
 import { AppHeader } from "@/components/finance/app-header";
-import { useMutation, useQueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { FinanceSelect } from "@/components/finance/account-select";
@@ -16,20 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { summarize, suggestCuts, brl, categorize, filterTransactions, PERIOD_LABELS, SAVINGS_GOAL, type Period, type Tx } from "@/lib/finance";
 import { getAiTips } from "@/lib/insights.functions";
-
-const txQuery = queryOptions({
-  queryKey: ["finance-data"],
-  queryFn: async () => {
-    const [transactions, goals, contributions, connections] = await Promise.all([
-      supabase.from("transactions").select("*").order("occurred_on", { ascending: false }),
-      supabase.from("savings_goals").select("*").order("created_at", { ascending: false }),
-      supabase.from("goal_contributions").select("*").order("created_at", { ascending: false }),
-      supabase.from("bank_connections").select("*")
-    ]);
-    for (const result of [transactions, goals, contributions, connections]) if (result.error) throw result.error;
-    return { txs: (transactions.data ?? []).map(r => ({ ...r, amount: Number(r.amount) })) as (Tx & { id: string })[], goals: goals.data ?? [], contributions: contributions.data ?? [], connections: connections.data ?? [] };
-  },
-});
+import { financeDataQuery as txQuery } from "@/lib/finance-data";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({

@@ -11,7 +11,7 @@ import { brl, goalProgress } from "@/lib/finance";
 
 type Goal = { id: string; name: string; target: number; account: string };
 type Contribution = { id: string; goal_id: string; amount: number; created_at: string };
-export function Goals({ goals, contributions, accounts }: { goals: Goal[]; contributions: Contribution[]; accounts: string[] }) {
+export function Goals({ goals = [], contributions = [], accounts = [] }: { goals?: Goal[]; contributions?: Contribution[]; accounts?: string[] }) {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");

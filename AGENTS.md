@@ -17,6 +17,6 @@
 - Banking, goals and credit review use focused finance components and pure helpers — keeps the main finance screen maintainable and calculation rules testable.
 - Bills are separate from bank transactions and use tested pure mapping/summary helpers — avoids double-counting planned payments as bank expenses.
 - Pending bill month eligibility and carryover are computed by pure helpers from original reference dates, never by rewriting imported rows — preserves provenance and keeps refreshes idempotent.
-- The single bills experience exposes bank connection and transaction reads in a focused collapsible panel with the shared finance-data query — preserves a clean unpaid-bills view without hiding bank access.
+- Both finance screens use the canonical query in `src/lib/finance-data.ts` for the `finance-data` key, always including transactions, goals, contributions and connections — prevents cache shape collisions when navigating between bills and the overview.
 - Shared Notion credentials are accessible only after an owner-scoped, non-user-writable organizer authorization — prevents other app users from importing the builder's private workspace.
 - Notion refreshes preserve local payment overrides and never infer payment from bank amount matches — keeps reviewed statuses stable and avoids false reconciliation.
