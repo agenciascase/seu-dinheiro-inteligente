@@ -9,11 +9,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { brl } from '@/lib/finance';
-import { openBillsForMonth, billDisplayDescription } from '@/lib/bills';
+import { openBillsForMonth, billDisplayDescription, availableBillMonths, monthLabel } from '@/lib/bills';
 import { importNotionFinance } from '@/lib/notion.functions';
 import { BankPanel, bankDataQuery } from '@/components/finance/bank-panel';
 
-const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => { const result = await supabase.from('bills').select('*').order('due_on', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false }); if (result.error) throw result.error; return result.data.map(b => ({ ...b, amount: Number(b.amount) })); } });
+const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => { const result = await supabase.from('bills').select('*').order('due_on', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false }); if (result.error) throw result.error; return result.data.map(b => ({ ...b, amount: Number(b.amount), reference_month: b.reference_month ?? '' })); } });
 export const Route = createFileRoute('/_authenticated/contas-a-pagar')({
   head: () => ({ meta: [{ title: 'Contas a pagar — Meu Organizador' }, { name: 'description', content: 'Suas contas em aberto, com pendências anteriores reunidas no mês atual.' }, { property: 'og:title', content: 'Contas a pagar — Meu Organizador' }, { property: 'og:description', content: 'Acompanhe e quite suas contas em aberto.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   loader: ({ context }) => Promise.all([context.queryClient.ensureQueryData(billsQuery), context.queryClient.ensureQueryData(bankDataQuery)]), component: BillsPage,
@@ -23,12 +23,15 @@ function BillsPage() {
   const { data } = useSuspenseQuery(billsQuery);
   const qc = useQueryClient(); const navigate = useNavigate(); const importFinance = useServerFn(importNotionFinance);
   const [today, setToday] = useState(currentDay);
+  const [selectedMonth, setSelectedMonth] = useState(() => currentDay().slice(0, 7));
   useEffect(() => { const timer = window.setInterval(() => setToday(currentDay()), 60_000); return () => window.clearInterval(timer); }, []);
-  const rows = openBillsForMonth(data, today);
+  const months = availableBillMonths(data, today);
+  const month = months.includes(selectedMonth) ? selectedMonth : (months[0] ?? today.slice(0, 7));
+  const rows = openBillsForMonth(data, `${month}-28`);
   const total = rows.reduce((sum, bill) => sum + bill.amount, 0);
   const importer = useMutation({ mutationFn: () => importFinance(), onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Contas atualizadas.'); }, onError: e => toast.error(e.message) });
   const update = useMutation({ mutationFn: async (id: string) => { const r = await supabase.from('bills').update({ status_override: true }).eq('id', id); if (r.error) throw r.error; }, onSuccess: () => { qc.invalidateQueries({ queryKey: ['bills'] }); toast.success('Conta marcada como paga.'); }, onError: e => toast.error(e.message) });
-  const add = useMutation({ mutationFn: async (form: FormData) => { const amount = Number(String(form.get('amount')).replace(',', '.')); const description = String(form.get('description')).trim(); if (!description) throw new Error('Informe a descrição da conta.'); if (!Number.isFinite(amount) || amount <= 0) throw new Error('Informe um valor maior que zero.'); const r = await supabase.from('bills').insert({ description, amount, due_on: null, reference_month: today.slice(0, 7), kind: 'expense' }); if (r.error) throw r.error; }, onSuccess: () => qc.invalidateQueries({ queryKey: ['bills'] }), onError: e => toast.error(e.message) });
+  const add = useMutation({ mutationFn: async (form: FormData) => { const amount = Number(String(form.get('amount')).replace(',', '.')); const description = String(form.get('description')).trim(); if (!description) throw new Error('Informe a descrição da conta.'); if (!Number.isFinite(amount) || amount <= 0) throw new Error('Informe um valor maior que zero.'); const r = await supabase.from('bills').insert({ description, amount, due_on: null, reference_month: month, kind: 'expense' }); if (r.error) throw r.error; }, onSuccess: () => qc.invalidateQueries({ queryKey: ['bills'] }), onError: e => toast.error(e.message) });
   async function signOut() { await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut(); navigate({ to: '/auth', replace: true }); }
   return <div className="min-h-screen">
     <AppHeader active="contas" onSignOut={signOut} />
@@ -36,6 +39,9 @@ function BillsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="font-display text-3xl">Contas a pagar</h1>
         <Button variant="ghost" size="sm" disabled={importer.isPending} onClick={() => importer.mutate()}><RefreshCw className={`h-4 w-4 ${importer.isPending ? 'animate-spin motion-reduce:animate-none' : ''}`} />{importer.isPending ? 'Atualizando…' : 'Atualizar do Notion'}</Button>
+      </div>
+      <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Meses">
+        {months.map(m => <button key={m} role="tab" aria-selected={m === month} onClick={() => setSelectedMonth(m)} className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${m === month ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{monthLabel(m)}</button>)}
       </div>
       <div className="flex flex-wrap items-end justify-between gap-4 border-b py-7">
         <div><p className="text-sm text-muted-foreground">Total em aberto</p><p className="mt-2 font-display text-4xl text-primary">{brl(total)}</p></div>

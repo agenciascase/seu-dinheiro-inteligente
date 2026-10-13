@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { billSummary, mapNotionBill, money, openBillsForMonth } from './bills';
+import { availableBillMonths, billSummary, mapNotionBill, money, monthLabel, openBillsForMonth } from './bills';
 it('imports BRL values from organizer text', () => { expect(money('R$ 1.330,00')).toBe(1330); expect(money('Curso 330')).toBeNull(); });
 it('uses the Pago checkbox and does not invent dates from installment descriptions', () => {
   expect(mapNotionBill({ id: 'a', properties: { 'Saída': { title: [{ plain_text: 'R$ 330,00' }] }, 'Descrição': { rich_text: [{ plain_text: 'Ana Mara 01/01' }] }, 'Pago': { checkbox: true } } }, 'Outubro')).toMatchObject({ amount: 330, paid: true, due_on: null, kind: 'expense' });
@@ -27,3 +27,7 @@ it('handles Notion month names with or without a year and excludes future months
   const october = { ...monthlyBill, reference_month: 'Outubro' };
   expect(openBillsForMonth([october, { ...monthlyBill, reference_month: 'Novembro' }, { ...monthlyBill, reference_month: 'Dezembro 2025' }], '2026-10-13')).toEqual([october, { ...monthlyBill, reference_month: 'Dezembro 2025' }]);
 });
+it('lists expense months plus the current month, newest first, without duplicates', () => {
+  expect(availableBillMonths([monthlyBill, { ...monthlyBill, reference_month: 'Setembro 2026' }, { ...monthlyBill, kind: 'income', reference_month: '2026-08' }], '2026-10-13')).toEqual(['2026-10', '2026-09']);
+});
+it('formats a month as a short pt-BR label', () => { expect(monthLabel('2026-10')).toBe('out/2026'); });

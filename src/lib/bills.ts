@@ -39,6 +39,16 @@ export function openBillsForMonth<T extends MonthlyBill>(rows: T[], today: strin
   const currentMonth = today.slice(0, 7);
   return rows.filter(bill => bill.kind === 'expense' && !isBillPaid(bill) && !isOrganizerSummary(bill.description) && billReferenceMonth(bill) <= currentMonth);
 }
+export function availableBillMonths<T extends MonthlyBill>(rows: T[], today: string): string[] {
+  const months = new Set(rows.filter(bill => bill.kind === 'expense' && !isOrganizerSummary(bill.description)).map(billReferenceMonth));
+  months.add(today.slice(0, 7));
+  return [...months].sort().reverse();
+}
+export const MONTH_SHORT_LABELS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+export function monthLabel(month: string): string {
+  const [year, m] = month.split('-');
+  return `${MONTH_SHORT_LABELS[Number(m) - 1]}/${year}`;
+}
 export function billDisplayDescription(description: string): string {
   return description.replace(/\b\d{4}-\d{2}-\d{2}\b/g, '').replace(/\b\d{1,2}[\/.-]\d{1,2}(?:[\/.-]\d{2,4})?\b/g, '').replace(/\s+/g, ' ').trim() || 'Conta';
 }
