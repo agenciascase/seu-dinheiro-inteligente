@@ -32,7 +32,6 @@ const txQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/_authenticated/painel")({
-  beforeLoad: () => { throw redirect({ to: '/contas-a-pagar', replace: true }); },
   head: () => ({
     meta: [
       { title: "Meu painel — Meu Organizador" },
