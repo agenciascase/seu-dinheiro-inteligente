@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { summarize, suggestCuts, brl, categorize, filterTransactions, filterCashFlow, PERIOD_LABELS, SAVINGS_GOAL, type CashFlow, type Period, type Tx } from "@/lib/finance";
+import { summarize, suggestCuts, suggestNamedCuts, brl, categorize, filterTransactions, filterCashFlow, PERIOD_LABELS, SAVINGS_GOAL, type CashFlow, type Period, type Tx } from "@/lib/finance";
 import { financeDataQuery as txQuery } from "@/lib/finance-data";
 
 export const Route = createFileRoute("/_authenticated/painel")({
