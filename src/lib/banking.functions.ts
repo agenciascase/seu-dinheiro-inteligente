@@ -10,7 +10,6 @@ export const findBankConnections = createServerFn({ method: "POST" }).middleware
   if (!auth.ok) throw new Error(`Pluggy: autenticação indisponível (${auth.status}).`);
   const { apiKey } = await auth.json() as { apiKey: string };
   let after: string | null = null; const ids: string[] = [];
-  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
   do {
     const url = new URL('https://api.pluggy.ai/v2/items'); url.searchParams.set('clientUserId', context.userId); if (after) url.searchParams.set('after', after);
     const response = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
@@ -19,8 +18,9 @@ export const findBankConnections = createServerFn({ method: "POST" }).middleware
       throw new Error(`Pluggy: não foi possível buscar as autorizações (${response.status}).`);
     }
     const page = await response.json() as { results: { id: string; clientUserId?: string; connector: { name: string } }[]; next?: string | null };
-    const owned = page.results.filter(item => !item.clientUserId || item.clientUserId === context.userId);
+    const owned = page.results.filter(item => item.clientUserId === context.userId);
     if (owned.length) {
+      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
       const result = await supabaseAdmin.from('bank_connections').upsert(owned.map(item => ({ user_id: context.userId, item_id: item.id, bank_name: item.connector.name })), { onConflict: 'item_id' });
       if (result.error) throw new Error(result.error.message);
       ids.push(...owned.map(item => item.id));
