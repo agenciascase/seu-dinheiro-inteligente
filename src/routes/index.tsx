@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PiggyBank, PieChart, BellRing, Sparkles } from "lucide-react";
+import { ChartNoAxesCombined, PieChart, BellRing, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import planningImage from "@/assets/financial-planning.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,40 +29,34 @@ const features = [
 function Index() {
   return (
     <main className="min-h-screen">
-      <section className="bg-hero text-primary-foreground">
-        <div className="mx-auto max-w-5xl px-6 py-8">
-          <nav className="flex items-center justify-between">
-            <span className="flex items-center gap-2 font-display text-xl">
-              <PiggyBank className="h-6 w-6" /> Meu Organizador
-            </span>
-            <Link to="/auth" className="text-sm font-medium opacity-90 hover:opacity-100">
-              Entrar
-            </Link>
-          </nav>
-          <div className="py-12 md:py-16">
-            <p className="mb-4 text-sm font-semibold text-accent">Seu dinheiro, com direção.</p>
-            <h1 className="max-w-3xl text-5xl font-bold leading-[1.05] md:text-7xl">
+      <nav className="mx-auto flex max-w-[1160px] items-center justify-between gap-3 px-4 py-5 sm:px-6">
+        <span className="flex items-center gap-3 text-base font-bold"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"><ChartNoAxesCombined className="h-5 w-5" /></span>Meu Organizador</span>
+        <Button asChild variant="outline"><Link to="/auth">Entrar <ArrowRight /></Link></Button>
+      </nav>
+      <section className="finance-cover">
+        <img src={planningImage} width={1536} height={1024} alt="Caderno de planejamento financeiro, calculadora e notas de reais" fetchPriority="high" />
+        <div className="finance-cover-content mx-auto max-w-[1160px] px-6 py-12 sm:py-16">
+          <div className="max-w-lg py-4">
+            <p className="mb-4 text-sm font-semibold">Seu dinheiro, com direção.</p>
+            <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
               Meu Organizador
             </h1>
-            <p className="mt-6 max-w-xl text-lg opacity-85">
-              O Meu Organizador junta seus gastos, separa por categoria e te avisa o que dá para cortar.
-            </p>
-            <blockquote className="mt-6 max-w-2xl border-l-2 border-accent pl-4 font-display text-lg text-accent">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
-            <Button asChild variant="hero" size="lg" className="mt-10 h-12 px-8 text-base">
-              <Link to="/auth">Começar grátis</Link>
+            <p className="mt-5 text-xl leading-relaxed">Sua vida financeira.<br />Sob controle.</p>
+            <Button asChild size="lg" className="mt-8 h-12 bg-card text-primary hover:bg-secondary">
+              <Link to="/auth">Acessar meu organizador <ArrowRight /></Link>
             </Button>
           </div>
         </div>
       </section>
-      <section className="mx-auto grid max-w-5xl gap-6 px-6 py-10 md:grid-cols-3">
+      <section className="mx-auto grid max-w-[1160px] gap-8 px-6 py-9 md:grid-cols-3">
         {features.map((f) => (
-          <div key={f.title} className="rounded-2xl border bg-card p-6 shadow-soft">
-            <f.icon className="h-6 w-6 text-primary" />
-            <h3 className="mt-4 text-xl font-semibold">{f.title}</h3>
-            <p className="mt-2 text-muted-foreground">{f.text}</p>
+          <div key={f.title} className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-primary"><f.icon className="h-5 w-5" /></span>
+            <h2 className="text-base font-semibold">{f.title}</h2>
           </div>
         ))}
       </section>
+      <blockquote className="finance-statement mx-auto mb-8 max-w-[1112px] px-6">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
     </main>
   );
 }
