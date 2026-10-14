@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Shared finance page presentation uses AppHeader and semantic global theme tokens, with presentation independent from finance queries and calculations — keeps visual changes consistent without affecting financial rules.
 - Finance math (summaries, savings gap, cut suggestions) lives in `src/lib/finance.ts` as pure functions with tests — keeps rules testable and shared by UI and server.
 - Financial consultancy runs in an authenticated server function (`src/lib/insights.functions.ts`) with validated period/account inputs and RLS reads — keeps AI credentials private and analysis aligned with the selected scope.
 - Personal goals and contributions persist separately from transactions and do not move bank funds — prevents recorded savings from being mistaken for transfers.

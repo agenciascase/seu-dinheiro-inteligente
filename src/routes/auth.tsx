@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { PiggyBank } from "lucide-react";
+import { ChartNoAxesCombined } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -69,9 +69,9 @@ function AuthPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-3xl border bg-card p-8 shadow-soft">
+      <div className="w-full max-w-sm rounded-lg border bg-card p-8 shadow-soft">
         <Link to="/" className="flex items-center gap-2 font-display text-xl text-primary">
-          <PiggyBank className="h-6 w-6" /> Meu Organizador
+          <ChartNoAxesCombined className="h-6 w-6" /> Meu Organizador
         </Link>
         <h1 className="mt-6 text-3xl font-bold">{mode === "in" ? "Bem-vindo de volta" : "Crie sua conta"}</h1>
         <Button variant="outline" className="mt-6 w-full" onClick={google}>
@@ -91,12 +91,12 @@ function AuthPage() {
             {mode === "in" ? "Entrar" : "Criar conta"}
           </Button>
         </form>
-        <button
+        <Button variant="ghost"
           className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
           onClick={() => setMode(mode === "in" ? "up" : "in")}
         >
           {mode === "in" ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"}
-        </button>
+        </Button>
       </div>
     </main>
   );
