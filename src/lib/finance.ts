@@ -102,7 +102,7 @@ export const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export type Period = "weekly" | "fortnightly" | "monthly";
-export const PERIOD_LABELS: Record<Period, string> = { weekly: "Semanal", fortnightly: "Quinzenal", monthly: "Mensal" };
+export const PERIOD_LABELS: Record<Period, string> = { monthly: "Mensal", fortnightly: "Quinzenal", weekly: "Semanal" };
 export function periodRange(period: Period, anchor = new Date()): { from: string; to: string } {
   const to = anchor.toISOString().slice(0, 10);
   const start = new Date(`${to}T12:00:00Z`);
