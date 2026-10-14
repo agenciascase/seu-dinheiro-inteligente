@@ -8,7 +8,7 @@ import { Banks } from "@/components/finance/banks";
 import { Goals } from "@/components/finance/goals";
 import { Cards } from "@/components/finance/cards";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { PiggyBank, LogOut, Sparkles, TrendingDown, Plus, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Sparkles, TrendingDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -63,20 +63,19 @@ function Painel() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader active="orcamento" onSignOut={signOut}>
-        <div className="mt-6 rounded-lg border bg-card p-5">
-          <p className="text-sm text-muted-foreground">{PERIOD_LABELS[period]} · {account === "all" ? "Todas as contas" : account}</p>
-          <div className="mt-2 grid gap-6 md:grid-cols-3">
+      <AppHeader active="orcamento" onSignOut={signOut} />
+      <main className="finance-main space-y-8">
+        <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-medium text-primary">Meu dinheiro</p><h1 className="mt-1 text-3xl font-bold">Visão geral</h1></div><p className="text-sm text-muted-foreground">{PERIOD_LABELS[period]} · {account === "all" ? "Todas as contas" : account}</p></div>
+        <div>
+          <div className="grid gap-4 md:grid-cols-3">
             <Stat label="Entrou" value={brl(summary.income)} />
             <Stat label="Saiu" value={brl(summary.expenses)} />
             <Stat label="Sobrou" value={brl(summary.leftover)} highlight />
           </div>
           <p className="mt-4 text-sm text-muted-foreground">Referência inicial: pelo menos {brl(SAVINGS_GOAL)} por mês — quanto mais sobrar, melhor.</p>
         </div>
-        <blockquote className="mt-5 max-w-3xl border-l-2 border-primary pl-4 font-display text-lg text-primary">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
-      </AppHeader>
+        <blockquote className="finance-statement max-w-3xl">VOCÊ NÃO É RICO PELO TANTO QUE VOCÊ GANHA, VOCÊ FICA RICO NO TANTO QUE VOCÊ GASTA</blockquote>
 
-      <main className="mx-auto max-w-6xl space-y-8 px-6 py-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex flex-wrap gap-2" role="group" aria-label="Período de análise">{(Object.keys(PERIOD_LABELS) as Period[]).map(p => <Button key={p} variant={period === p ? "default" : "outline"} aria-pressed={period === p} onClick={() => setPeriod(p)}>{PERIOD_LABELS[p]}</Button>)}</div>
           <div className="space-y-1"><label htmlFor="account-filter" className="block text-xs text-muted-foreground">Conta</label><FinanceSelect label="Filtrar conta" value={account} onChange={setAccount} options={[{ value: "all", label: "Todas as contas juntas" }, ...accounts.map(a => ({ value: a, label: a }))]} /></div>
@@ -178,9 +177,9 @@ function Painel() {
 
 function Stat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div>
-      <p className="text-sm opacity-75">{label}</p>
-      <p className={`font-display text-3xl font-bold break-words ${highlight ? "text-accent" : ""}`}>{value}</p>
+    <div className="finance-stat">
+      <div className="flex items-center justify-between gap-2"><p className="text-sm text-muted-foreground">{label}</p><span className={`flex h-9 w-9 items-center justify-center rounded-md ${highlight ? "bg-primary text-primary-foreground" : "bg-secondary text-primary"}`}>{highlight ? <Wallet className="h-4 w-4" /> : label === "Entrou" ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span></div>
+      <p className={`mt-3 text-3xl font-bold break-words tabular-nums ${highlight ? "text-primary" : ""}`}>{value}</p>
     </div>
   );
 }
