@@ -1,4 +1,5 @@
 # Meu Organizador
+- [ ] Renovar apresentação como organizador financeiro, com paleta financeira e hierarquia clara, sem alterar dados ou regras.
 - [x] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; rules and signed-in payment persistence verified, no runtime errors or mobile overflow.
 - [x] Preserve Pluggy connection and bank movement access in a collapsible section inside Contas a pagar; connection window verified.
 - [ ] Synchronize real Pluggy movements: authorization discovery returns HTTP 403; no authorized bank is registered. Await user bank consent and provider production permissions (widget currently displays Demo).
