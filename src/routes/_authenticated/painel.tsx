@@ -44,7 +44,7 @@ function Painel() {
   const flowRows = useMemo(() => filterCashFlow(txs, flow), [txs, flow]);
   const summary = useMemo(() => summarize(txs), [txs]);
   const { cuts, covered } = useMemo(() => suggestCuts(summary), [summary]);
-  const namedCuts = useMemo(() => suggestNamedCuts(periodTxs), [periodTxs]);
+  const namedCuts = useMemo(() => suggestNamedCuts(txs), [txs]);
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
@@ -114,26 +114,26 @@ function Painel() {
 
               <div className="lg:col-span-2">
                 <h2 className="flex items-center gap-2 text-2xl font-bold">
-                  <Sprout className="h-5 w-5 text-primary" /> Oportunidades de economia
+                  <Sprout className="h-5 w-5 text-primary" /> Gastos que você pode eliminar
                 </h2>
                 <>
                     <p className="mt-3 text-sm text-muted-foreground">Economia estimada no período</p>
-                    <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(covered)}</p>
-                    <p className="mt-2 text-sm text-muted-foreground">Possibilidades para guardar mais, preservando seus gastos essenciais.</p>
+                     <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(covered)}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Estas são as contas e assinaturas que pesam no seu bolso sem serem essenciais. Revise cada uma e elimine o que não faz falta.</p>
                     <ul className="mt-4 space-y-3">
-                      {cuts.map((c) => (
-                        <li key={c.category} className="flex items-center justify-between gap-3 border-b pb-3 text-sm last:border-0">
+                      {namedCuts.map((c) => (
+                        <li key={c.name} className="flex items-center justify-between gap-3 border-b pb-3 text-sm last:border-0">
                           <div className="min-w-0">
-                            <p className="font-semibold">{c.category}</p>
+                            <p className="font-semibold">{c.name}</p>
                             <p className="text-muted-foreground">
-                              Gasto atual: {brl(c.current)} · Sugestão: {brl(c.current - c.cut)}
+                              {c.count > 1 ? `${c.count} lançamentos no período` : "1 lançamento no período"}
                             </p>
-                          </div>
-                          <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Economia possível</p><p className="font-semibold text-success">{brl(c.cut)}</p></div>
+                           </div>
+                          <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Você economizaria</p><p className="font-semibold text-success">{brl(c.total)}</p></div>
                         </li>
                       ))}
                     </ul>
-                    {cuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhuma oportunidade estimada em gastos flexíveis neste período.</p>}
+                    {namedCuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhum gasto dispensável encontrado neste período.</p>}
                   </>
               </div>
             </section>
