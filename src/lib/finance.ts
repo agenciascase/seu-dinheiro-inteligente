@@ -117,6 +117,12 @@ export function suggestNamedCuts(txs: Tx[], limit = 8): NamedCut[] {
     .slice(0, limit);
 }
 
+/** Total the user would save by eliminating every listed account/subscription. */
+export function namedCutsTotal(cuts: NamedCut[]): number {
+  return round(cuts.reduce((sum, c) => sum + Number(c.total), 0));
+}
+
+
 export const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summarize, suggestCuts, suggestNamedCuts, SAVINGS_GOAL, filterTransactions, filterCashFlow, categorize, cardSummary, goalProgress, type Tx } from "./finance";
+import { summarize, suggestCuts, suggestNamedCuts, namedCutsTotal, SAVINGS_GOAL, filterTransactions, filterCashFlow, categorize, cardSummary, goalProgress, type Tx } from "./finance";
 
 const tx = (amount: number, kind: Tx["kind"], category = "Outros"): Tx => ({
   occurred_on: "2026-10-01",
@@ -82,7 +82,7 @@ describe("meta de economia", () => {
   });
 });
 
-describe("gastos que você pode eliminar", () => {
+describe("eliminar gastos desnecessários", () => {
   it("agrupa por nome real da conta, maior primeiro, sem essenciais nem transferências", () => {
     const cuts = suggestNamedCuts([
       { ...tx(50, "expense"), description: "Netflix" },
@@ -99,5 +99,20 @@ describe("gastos que você pode eliminar", () => {
   it("ignora entradas e respeita o limite de itens", () => {
     const many = Array.from({ length: 12 }, (_, i) => ({ ...tx(10 + i, "expense"), description: `Conta ${i}` }));
     expect(suggestNamedCuts(many)).toHaveLength(8);
+  });
+});
+
+describe("total que você pode economizar", () => {
+  it("soma exatamente os gastos listados", () => {
+    expect(
+      namedCutsTotal([
+        { name: "Academia", total: 200, count: 1 },
+        { name: "Netflix", total: 100.55, count: 2 },
+      ]),
+    ).toBe(300.55);
+  });
+
+  it("é zero quando nada pode ser eliminado", () => {
+    expect(namedCutsTotal([])).toBe(0);
   });
 });
