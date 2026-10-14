@@ -98,6 +98,25 @@ export function suggestCuts(summary: Summary): { cuts: Cut[]; covered: number } 
   return { cuts, covered: round(cuts.reduce((s, c) => s + c.cut, 0)) };
 }
 
+export type NamedCut = { name: string; total: number; count: number };
+
+/** Group non-essential expenses by their real description (e.g. "Netflix"), biggest first. */
+export function suggestNamedCuts(txs: Tx[], limit = 8): NamedCut[] {
+  const map = new Map<string, { total: number; count: number }>();
+  for (const t of txs) {
+    if (t.kind !== "expense" || t.is_transfer || t.necessity === "necessary") continue;
+    const name = (t.description || "Sem descrição").trim();
+    const entry = map.get(name) ?? { total: 0, count: 0 };
+    entry.total += Number(t.amount);
+    entry.count += 1;
+    map.set(name, entry);
+  }
+  return [...map.entries()]
+    .map(([name, v]) => ({ name, total: round(v.total), count: v.count }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
+}
+
 export const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
