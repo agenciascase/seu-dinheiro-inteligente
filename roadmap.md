@@ -1,5 +1,5 @@
 # Meu Organizador
-- [ ] Substituir “Onde cortar” por apresentação focada em oportunidades de economia, sem alterar cálculos.
+- [x] Substituir “Onde cortar” por oportunidades de economia com valor estimado e economia possível por categoria, sem alterar cálculos; apresentação e assessor verificados sem erros.
 - [x] Remover áreas de cartão de crédito e consultoria da visão geral e substituí-las por assessor financeiro flutuante; pergunta real respondida, reabertura preserva conversa e janela verificada em desktop e celular.
 - [x] Adicionar filtro de fluxo Entradas/Saídas nos lançamentos e ajustar opções para Débito/Crédito; filtros verificados com 1 entrada e 10 saídas reais, testes aprovados.
 - [x] Restaurar credenciais Pluggy: atualizadas em formulário seguro; autorização bancária abre novamente.
