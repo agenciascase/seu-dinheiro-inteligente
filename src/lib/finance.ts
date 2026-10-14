@@ -113,6 +113,10 @@ export function filterTransactions(txs: Tx[], period: Period, account = "all", a
   const { from, to } = periodRange(period, anchor);
   return txs.filter(t => t.occurred_on >= from && t.occurred_on <= to && (account === "all" || t.account === account));
 }
+export type CashFlow = "all" | "income" | "expense";
+export function filterCashFlow<T extends Tx>(txs: T[], flow: CashFlow): T[] {
+  return flow === "all" ? txs : txs.filter(tx => tx.kind === flow);
+}
 export function categorize(description: string): string {
   const text = description.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const rules: [string, RegExp][] = [

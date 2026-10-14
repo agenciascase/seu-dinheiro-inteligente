@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { summarize, suggestCuts, brl, categorize, filterTransactions, PERIOD_LABELS, SAVINGS_GOAL, type Period, type Tx } from "@/lib/finance";
+import { summarize, suggestCuts, brl, categorize, filterTransactions, filterCashFlow, PERIOD_LABELS, SAVINGS_GOAL, type CashFlow, type Period, type Tx } from "@/lib/finance";
 import { getAiTips } from "@/lib/insights.functions";
 import { financeDataQuery as txQuery } from "@/lib/finance-data";
 
@@ -41,7 +41,9 @@ function Painel() {
   const { data } = useSuspenseQuery(txQuery);
   const [period, setPeriod] = useState<Period>("monthly");
   const [account, setAccount] = useState("all");
+  const [flow, setFlow] = useState<CashFlow>("all");
   const txs = useMemo(() => filterTransactions(data.txs, period, account) as (Tx & { id: string })[], [data.txs, period, account]);
+  const flowRows = useMemo(() => filterCashFlow(txs, flow), [txs, flow]);
   const summary = useMemo(() => summarize(txs), [txs]);
   const { cuts, covered } = useMemo(() => suggestCuts(summary), [summary]);
   const remove = useMutation({
@@ -139,21 +141,18 @@ function Painel() {
             <AiTips key={`${period}-${account}`} period={period} account={account} />
             <div id="patrimonio" className="scroll-mt-6"><Goals goals={data.goals} contributions={data.contributions} accounts={accounts} /></div>
 
-            <section className="border-t pt-6">
+            <section className="border-t pt-6" aria-label="Lançamentos">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-2xl font-bold">Lançamentos</h2>
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  {accounts.map((a) => (
-                    <span key={a} className="rounded-full bg-muted px-3 py-1">{a}</span>
-                  ))}
-                </div>
+                <FinanceSelect label="Fluxo de caixa" value={flow} onChange={value => { if (value === "all" || value === "income" || value === "expense") setFlow(value); }} options={[{ value: "all", label: "Entradas e saídas" }, { value: "income", label: "Entradas" }, { value: "expense", label: "Saídas" }]} />
               </div>
+              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-b pb-4 text-sm"><p className="text-muted-foreground">Entradas <strong className="ml-2 text-success">{brl(summary.income)}</strong></p><p className="text-muted-foreground">Saídas <strong className="ml-2 text-foreground">{brl(summary.expenses)}</strong></p><p className="text-muted-foreground">Saldo <strong className={`ml-2 ${summary.leftover < 0 ? "text-destructive" : "text-primary"}`}>{brl(summary.leftover)}</strong></p></div>
               <AddTx accounts={accounts} />
               <ul className="mt-4 divide-y">
-                {txs.map((t) => (
+                {flowRows.map((t) => (
                   <li key={t.id} className="group flex items-center gap-2 py-3 text-sm sm:gap-4">
                     <span className="w-12 shrink-0 text-muted-foreground">{t.occurred_on.slice(8, 10)}/{t.occurred_on.slice(5, 7)}</span>
-                    <span className="min-w-0 flex-1 font-medium break-words">{t.description}<span className="block text-xs font-normal text-muted-foreground">{t.account}{t.payment_method === "credit" ? " · Cartão" : ""}{t.is_transfer ? " · Transferência" : ""}</span></span>
+                    <span className="min-w-0 flex-1 font-medium break-words">{t.description}<span className="block text-xs font-normal text-muted-foreground">{t.account} · {t.payment_method === "credit" ? "Crédito" : "Débito"}{t.is_transfer ? " · Transferência" : ""}</span></span>
                     <span className="hidden rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground sm:inline">{t.category}</span>
                     <span className={`w-28 text-right font-semibold ${t.kind === "income" ? "text-success" : ""}`}>
                       {t.kind === "income" ? "+" : "−"}{brl(t.amount)}
@@ -168,6 +167,7 @@ function Painel() {
                   </li>
                 ))}
               </ul>
+              {flowRows.length === 0 && <p className="py-6 text-sm text-muted-foreground">{flow === "income" ? "Nenhuma entrada" : flow === "expense" ? "Nenhuma saída" : "Nenhum lançamento"} neste período e conta.</p>}
             </section>
 
       </main>
@@ -251,16 +251,16 @@ function AddTx({ accounts }: { accounts: string[] }) {
       className="mt-4 flex flex-wrap gap-2"
     >
       <Select value={kind} onValueChange={(v) => setKind(v as "expense" | "income")}>
-        <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+        <SelectTrigger aria-label="Tipo do lançamento" className="w-28"><SelectValue /></SelectTrigger>
         <SelectContent>
-          <SelectItem value="expense">Gasto</SelectItem>
+          <SelectItem value="expense">Saída</SelectItem>
           <SelectItem value="income">Entrada</SelectItem>
         </SelectContent>
       </Select>
       <Input aria-label="Descrição do lançamento" required className="min-w-40 flex-1" placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
       <Input aria-label="Valor do lançamento" required className="w-28" placeholder="Valor" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
       <FinanceSelect label="Conta do lançamento" value={account} onChange={setAccount} options={accounts.map(a => ({ value: a, label: a }))} />
-      <FinanceSelect label="Forma de pagamento" value={paymentMethod} onChange={setPaymentMethod} options={[{ value: "debit", label: "Conta / Débito" }, { value: "credit", label: "Cartão de crédito" }]} />
+      <FinanceSelect label="Forma de pagamento" value={paymentMethod} onChange={setPaymentMethod} options={[{ value: "debit", label: "Débito" }, { value: "credit", label: "Crédito" }]} />
       <Button type="submit" disabled={add.isPending}><Plus className="h-4 w-4" /> Adicionar</Button>
     </form>
   );
