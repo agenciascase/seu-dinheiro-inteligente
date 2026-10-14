@@ -2,27 +2,25 @@ import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-ro
 import { AppHeader } from "@/components/finance/app-header";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { FinanceSelect } from "@/components/finance/account-select";
 import { Banks } from "@/components/finance/banks";
 import { Goals } from "@/components/finance/goals";
-import { Cards } from "@/components/finance/cards";
+import { FinancialAssistant } from "@/components/finance/financial-assistant";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { ArrowDownLeft, ArrowUpRight, Wallet, Sparkles, TrendingDown, Plus, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Sprout, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { summarize, suggestCuts, brl, categorize, filterTransactions, filterCashFlow, PERIOD_LABELS, SAVINGS_GOAL, type CashFlow, type Period, type Tx } from "@/lib/finance";
-import { getAiTips } from "@/lib/insights.functions";
 import { financeDataQuery as txQuery } from "@/lib/finance-data";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
     meta: [
       { title: "Meu painel — Meu Organizador" },
-      { name: "description", content: "Contas, cartões, consultoria e metas pessoais para guardar mais." },
+      { name: "description", content: "Entradas, saídas, metas pessoais e seu assessor financeiro para guardar mais." },
       { property: "og:title", content: "Meu painel — Meu Organizador" },
       { property: "og:description", content: "Análise semanal, quinzenal e mensal das suas contas." },
       { property: "og:type", content: "website" },
@@ -115,30 +113,30 @@ function Painel() {
 
               <div className="lg:col-span-2">
                 <h2 className="flex items-center gap-2 text-2xl font-bold">
-                  <TrendingDown className="h-5 w-5 text-warning" /> Onde cortar
+                  <Sprout className="h-5 w-5 text-primary" /> Oportunidades de economia
                 </h2>
                 <>
-                    <p className="mt-3 text-sm text-muted-foreground">Economia potencial no período: <strong className="text-foreground">{brl(covered)}</strong>. Sobra atual: {brl(summary.leftover)}.</p>
+                    <p className="mt-3 text-sm text-muted-foreground">Economia estimada no período</p>
+                    <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(covered)}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Possibilidades para guardar mais, preservando seus gastos essenciais.</p>
                     <ul className="mt-4 space-y-3">
                       {cuts.map((c) => (
-                        <li key={c.category} className="flex items-center justify-between border-b pb-3 text-sm last:border-0">
-                          <div>
+                        <li key={c.category} className="flex items-center justify-between gap-3 border-b pb-3 text-sm last:border-0">
+                          <div className="min-w-0">
                             <p className="font-semibold">{c.category}</p>
                             <p className="text-muted-foreground">
-                              de {brl(c.current)} para {brl(c.current - c.cut)}
+                              Gasto atual: {brl(c.current)} · Sugestão: {brl(c.current - c.cut)}
                             </p>
                           </div>
-                          <span className="font-semibold text-success">−{brl(c.cut)}</span>
+                          <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Economia possível</p><p className="font-semibold text-success">{brl(c.cut)}</p></div>
                         </li>
                       ))}
                     </ul>
-                    {cuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhum corte identificado em categorias flexíveis.</p>}
+                    {cuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhuma oportunidade estimada em gastos flexíveis neste período.</p>}
                   </>
               </div>
             </section>
 
-            <div id="cartoes" className="scroll-mt-6"><Cards txs={txs} /></div>
-            <AiTips key={`${period}-${account}`} period={period} account={account} />
             <div id="patrimonio" className="scroll-mt-6"><Goals goals={data.goals} contributions={data.contributions} accounts={accounts} /></div>
 
             <section className="border-t pt-6" aria-label="Lançamentos">
@@ -171,6 +169,7 @@ function Painel() {
             </section>
 
       </main>
+      <FinancialAssistant period={period} account={account} />
     </div>
   );
 }
@@ -181,38 +180,6 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
       <div className="flex items-center justify-between gap-2"><p className="text-sm text-muted-foreground">{label}</p><span className={`flex h-9 w-9 items-center justify-center rounded-md ${highlight ? "bg-primary text-primary-foreground" : "bg-secondary text-primary"}`}>{highlight ? <Wallet className="h-4 w-4" /> : label === "Entrou" ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span></div>
       <p className={`mt-3 text-3xl font-bold break-words tabular-nums ${highlight ? "text-primary" : ""}`}>{value}</p>
     </div>
-  );
-}
-
-function AiTips({ period, account }: { period: Period; account: string }) {
-  const [question, setQuestion] = useState("");
-  const consult = useServerFn(getAiTips);
-  const tips = useMutation({ mutationKey: ["consultancy", period, account], mutationFn: () => consult({ data: { period, account, question } }) });
-  return (
-    <section className="border-t pt-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
-          <Sparkles className="h-5 w-5 text-primary" /> Consultoria financeira
-        </h2>
-        <Button onClick={() => tips.mutate()} disabled={tips.isPending}>
-          {tips.isPending ? "Preparando sua consultoria…" : tips.data ? "Atualizar consultoria" : "Iniciar consultoria"}
-        </Button>
-      </div>
-      <Input aria-label="Pergunta para a consultoria" className="mt-4" placeholder="O que você quer avaliar nas suas finanças?" maxLength={2000} value={question} onChange={e => setQuestion(e.target.value)} />
-      {tips.error && <p className="mt-4 text-sm text-destructive">{tips.error.message}</p>}
-      {tips.data && (
-        <div className="mt-5 space-y-2 leading-relaxed">
-          {tips.data.tips.split("\n").filter(Boolean).map((line, i) => {
-            const clean = line.replace(/\*\*/g, "");
-            return clean.startsWith("- ") ? (
-              <p key={i} className="flex gap-2"><span className="text-primary">•</span>{clean.slice(2)}</p>
-            ) : (
-              <p key={i} className="font-medium">{clean.replace(/^#+\s*/, "")}</p>
-            );
-          })}
-        </div>
-      )}
-    </section>
   );
 }
 
