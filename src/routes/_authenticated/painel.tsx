@@ -43,7 +43,7 @@ function Painel() {
   const txs = useMemo(() => filterTransactions(data.txs, period, account) as (Tx & { id: string })[], [data.txs, period, account]);
   const flowRows = useMemo(() => filterCashFlow(txs, flow), [txs, flow]);
   const summary = useMemo(() => summarize(txs), [txs]);
-  const { cuts, covered } = useMemo(() => suggestCuts(summary), [summary]);
+  const { covered } = useMemo(() => suggestCuts(summary), [summary]);
   const namedCuts = useMemo(() => suggestNamedCuts(txs), [txs]);
   const remove = useMutation({
     mutationFn: async (id: string) => {
