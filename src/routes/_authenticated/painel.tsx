@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { summarize, suggestCuts, suggestNamedCuts, brl, categorize, filterTransactions, filterCashFlow, PERIOD_LABELS, SAVINGS_GOAL, type CashFlow, type Period, type Tx } from "@/lib/finance";
+import { summarize, suggestNamedCuts, namedCutsTotal, brl, categorize, filterTransactions, filterCashFlow, PERIOD_LABELS, SAVINGS_GOAL, type CashFlow, type Period, type Tx } from "@/lib/finance";
 import { financeDataQuery as txQuery } from "@/lib/finance-data";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -43,8 +43,8 @@ function Painel() {
   const txs = useMemo(() => filterTransactions(data.txs, period, account) as (Tx & { id: string })[], [data.txs, period, account]);
   const flowRows = useMemo(() => filterCashFlow(txs, flow), [txs, flow]);
   const summary = useMemo(() => summarize(txs), [txs]);
-  const { covered } = useMemo(() => suggestCuts(summary), [summary]);
   const namedCuts = useMemo(() => suggestNamedCuts(txs), [txs]);
+  const savingsTotal = useMemo(() => namedCutsTotal(namedCuts), [namedCuts]);
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
@@ -118,7 +118,7 @@ function Painel() {
                 </h2>
                 <>
                     <p className="mt-3 text-sm text-muted-foreground">Economia estimada</p>
-                     <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(covered)}</p>
+                     <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(savingsTotal)}</p>
                     <p className="mt-2 text-sm text-muted-foreground">Estas são as contas e assinaturas que pesam no seu bolso sem serem essenciais. Revise cada uma e elimine o que não faz falta.</p>
                     <ul className="mt-4 space-y-3">
                       {namedCuts.map((c) => (
