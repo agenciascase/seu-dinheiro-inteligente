@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summarize, suggestCuts, SAVINGS_GOAL, filterTransactions, categorize, cardSummary, goalProgress, type Tx } from "./finance";
+import { summarize, suggestCuts, SAVINGS_GOAL, filterTransactions, filterCashFlow, categorize, cardSummary, goalProgress, type Tx } from "./finance";
 
 const tx = (amount: number, kind: Tx["kind"], category = "Outros"): Tx => ({
   occurred_on: "2026-10-01",
@@ -11,6 +11,18 @@ const tx = (amount: number, kind: Tx["kind"], category = "Outros"): Tx => ({
 });
 
 describe("consultoria e períodos", () => {
+  it("mostra somente entradas quando selecionado no fluxo de caixa", () => {
+    const income = tx(3200, "income");
+    expect(filterCashFlow([income, tx(150, "expense")], "income")).toEqual([income]);
+  });
+  it("mostra somente saídas quando selecionado no fluxo de caixa", () => {
+    const expense = tx(150, "expense");
+    expect(filterCashFlow([tx(3200, "income"), expense], "expense")).toEqual([expense]);
+  });
+  it("mantém entradas e saídas na visão completa", () => {
+    const rows = [tx(3200, "income"), tx(150, "expense")];
+    expect(filterCashFlow(rows, "all")).toEqual(rows);
+  });
   it("continua sugerindo economia acima do mínimo de 500", () => {
     expect(suggestCuts(summarize([tx(5000, "income"), tx(500, "expense", "Delivery")])).covered).toBe(250);
   });
