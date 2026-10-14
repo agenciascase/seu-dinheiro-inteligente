@@ -14,6 +14,7 @@
 - Finance math (summaries, savings gap, cut suggestions) lives in `src/lib/finance.ts` as pure functions with tests — keeps rules testable and shared by UI and server.
 - Financial consultancy runs in an authenticated server function (`src/lib/insights.functions.ts`) with validated period/account inputs and RLS reads — keeps AI credentials private and analysis aligned with the selected scope.
 - The floating financial assistant uses a focused presentation component and the existing authenticated consultancy function with the overview's active filters — keeps on-demand questions scoped without duplicating financial logic.
+- Prebundle the assistant's Radix popover with React in Vite's initial dependency graph — prevents late dependency discovery from mixing React module generations during preview updates.
 - Personal goals and contributions persist separately from transactions and do not move bank funds — prevents recorded savings from being mistaken for transfers.
 - Pluggy credentials stay server-side; every item must match the authenticated clientUserId before persistence or synchronization — prevents cross-user bank data access.
 - Banking, goals and credit review use focused finance components and pure helpers — keeps the main finance screen maintainable and calculation rules testable.
