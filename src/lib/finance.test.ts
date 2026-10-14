@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summarize, suggestCuts, SAVINGS_GOAL, filterTransactions, filterCashFlow, categorize, cardSummary, goalProgress, type Tx } from "./finance";
+import { summarize, suggestCuts, suggestNamedCuts, SAVINGS_GOAL, filterTransactions, filterCashFlow, categorize, cardSummary, goalProgress, type Tx } from "./finance";
 
 const tx = (amount: number, kind: Tx["kind"], category = "Outros"): Tx => ({
   occurred_on: "2026-10-01",
@@ -79,5 +79,25 @@ describe("meta de economia", () => {
     const { cuts, covered } = suggestCuts(s);
     expect(covered).toBeGreaterThanOrEqual(s.gap);
     expect(cuts.find((c) => c.category === "Moradia")).toBeUndefined();
+  });
+});
+
+describe("gastos que você pode eliminar", () => {
+  it("agrupa por nome real da conta, maior primeiro, sem essenciais nem transferências", () => {
+    const cuts = suggestNamedCuts([
+      { ...tx(50, "expense"), description: "Netflix" },
+      { ...tx(50, "expense"), description: "Netflix" },
+      { ...tx(300, "expense"), description: "Aluguel", necessity: "necessary" },
+      { ...tx(200, "expense"), description: "Academia" },
+      { ...tx(500, "expense"), description: "PIX entre contas", is_transfer: true },
+      tx(1000, "income"),
+    ]);
+    expect(cuts.map((c) => c.name)).toEqual(["Academia", "Netflix"]);
+    expect(cuts[1]).toMatchObject({ total: 100, count: 2 });
+  });
+
+  it("ignora entradas e respeita o limite de itens", () => {
+    const many = Array.from({ length: 12 }, (_, i) => ({ ...tx(10 + i, "expense"), description: `Conta ${i}` }));
+    expect(suggestNamedCuts(many)).toHaveLength(8);
   });
 });
