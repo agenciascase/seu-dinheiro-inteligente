@@ -42,7 +42,8 @@ export function openBillsForMonth<T extends MonthlyBill>(rows: T[], today: strin
 export function availableBillMonths<T extends MonthlyBill>(rows: T[], today: string): string[] {
   const currentMonth = today.slice(0, 7);
   const months = new Set(rows.filter(bill => bill.kind === 'expense' && !isOrganizerSummary(bill.description)).map(billReferenceMonth).filter(month => month >= currentMonth));
-  const [year, month] = currentMonth.split('-').map(Number);
+  const year = Number(currentMonth.slice(0, 4));
+  const month = Number(currentMonth.slice(5, 7));
   for (let offset = 0; offset < 12; offset++) {
     const date = new Date(Date.UTC(year, month - 1 + offset, 1));
     months.add(date.toISOString().slice(0, 7));
