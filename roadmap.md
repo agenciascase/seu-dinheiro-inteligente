@@ -1,4 +1,5 @@
 # Meu Organizador
+- [ ] Remover áreas de cartão de crédito e consultoria da visão geral e substituí-las por assessor financeiro flutuante com perguntas e respostas.
 - [x] Adicionar filtro de fluxo Entradas/Saídas nos lançamentos e ajustar opções para Débito/Crédito; filtros verificados com 1 entrada e 10 saídas reais, testes aprovados.
 - [x] Restaurar credenciais Pluggy: atualizadas em formulário seguro; autorização bancária abre novamente.
 - [x] Ordenar períodos Mensal, Quinzenal, Semanal e meses do atual em diante, em ordem cronológica; testes e seleção autenticada verificados.
