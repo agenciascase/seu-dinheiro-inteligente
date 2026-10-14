@@ -1,11 +1,11 @@
 # Meu Organizador
 - [x] Adicionar filtro de fluxo Entradas/Saídas nos lançamentos e ajustar opções para Débito/Crédito; filtros verificados com 1 entrada e 10 saídas reais, testes aprovados.
-- [ ] Restaurar conexão Pluggy: autenticação retorna 401 em busca e conexão; aguarda credenciais válidas no formulário seguro e consentimento bancário.
+- [x] Restaurar credenciais Pluggy: atualizadas em formulário seguro; autorização bancária abre novamente.
 - [x] Ordenar períodos Mensal, Quinzenal, Semanal e meses do atual em diante, em ordem cronológica; testes e seleção autenticada verificados.
 - [x] Renovar apresentação como organizador financeiro com paleta esmeralda, superfícies claras, modos claro/escuro e hierarquia de saldos; telas autenticadas, meses e celular verificados, sem alterar dados ou regras.
 - [x] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; rules and signed-in payment persistence verified, no runtime errors or mobile overflow.
 - [x] Preserve Pluggy connection and bank movement access in a collapsible section inside Contas a pagar; connection window verified.
-- [ ] Synchronize real Pluggy movements: credentials currently rejected with HTTP 401; requires valid Pluggy credentials and user bank consent.
+- [ ] Synchronize real Pluggy movements: authorization window opens; discovery returns HTTP 403; awaits user consent through Conectar banco and provider permissions for discovery.
 - [x] Notion organizer imported with owner-only access; existing pending rows read back in signed-in UI.
 - [x] Add and verify a Contas a pagar tab with paid/pending statuses.
 - [x] Navy/yellow and motivation; minimum savings without ceiling.
