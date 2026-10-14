@@ -1,4 +1,5 @@
 # Meu Organizador
+- [ ] Ordenar períodos Mensal, Quinzenal, Semanal e meses do atual em diante, em ordem cronológica.
 - [x] Renovar apresentação como organizador financeiro com paleta esmeralda, superfícies claras, modos claro/escuro e hierarquia de saldos; telas autenticadas, meses e celular verificados, sem alterar dados ou regras.
 - [x] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; rules and signed-in payment persistence verified, no runtime errors or mobile overflow.
 - [x] Preserve Pluggy connection and bank movement access in a collapsible section inside Contas a pagar; connection window verified.
