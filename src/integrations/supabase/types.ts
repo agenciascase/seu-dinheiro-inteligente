@@ -45,91 +45,49 @@ export type Database = {
         Row: {
           account: string
           amount: number
-          category: string
           created_at: string
           description: string
-          due_day: number | null
           due_on: string | null
           external_id: string | null
           id: string
           kind: string
-          notes: string
           paid: boolean
-          paid_on: string | null
-          recurrence_origin: string | null
-          recurring: boolean
           reference_month: string
           source: string
           source_url: string | null
           status_override: boolean | null
-          transaction_id: string | null
           user_id: string
         }
         Insert: {
           account?: string
           amount: number
-          category?: string
           created_at?: string
           description: string
-          due_day?: number | null
           due_on?: string | null
           external_id?: string | null
           id?: string
           kind?: string
-          notes?: string
           paid?: boolean
-          paid_on?: string | null
-          recurrence_origin?: string | null
-          recurring?: boolean
           reference_month?: string
           source?: string
           source_url?: string | null
           status_override?: boolean | null
-          transaction_id?: string | null
           user_id?: string
         }
         Update: {
           account?: string
           amount?: number
-          category?: string
           created_at?: string
           description?: string
-          due_day?: number | null
           due_on?: string | null
           external_id?: string | null
           id?: string
           kind?: string
-          notes?: string
           paid?: boolean
-          paid_on?: string | null
-          recurrence_origin?: string | null
-          recurring?: boolean
           reference_month?: string
           source?: string
           source_url?: string | null
           status_override?: boolean | null
-          transaction_id?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      category_budgets: {
-        Row: {
-          category: string
-          id: string
-          monthly_limit: number
-          user_id: string
-        }
-        Insert: {
-          category: string
-          id?: string
-          monthly_limit: number
-          user_id?: string
-        }
-        Update: {
-          category?: string
-          id?: string
-          monthly_limit?: number
           user_id?: string
         }
         Relationships: []
@@ -140,8 +98,6 @@ export type Database = {
           created_at: string
           goal_id: string
           id: string
-          income_id: string | null
-          occurred_on: string
           user_id: string
         }
         Insert: {
@@ -149,8 +105,6 @@ export type Database = {
           created_at?: string
           goal_id: string
           id?: string
-          income_id?: string | null
-          occurred_on?: string
           user_id?: string
         }
         Update: {
@@ -158,8 +112,6 @@ export type Database = {
           created_at?: string
           goal_id?: string
           id?: string
-          income_id?: string | null
-          occurred_on?: string
           user_id?: string
         }
         Relationships: [
@@ -171,65 +123,6 @@ export type Database = {
             referencedColumns: ["id", "user_id"]
           },
         ]
-      }
-      goal_withdrawals: {
-        Row: {
-          amount: number
-          created_at: string
-          goal_id: string
-          id: string
-          occurred_on: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          goal_id: string
-          id?: string
-          occurred_on?: string
-          user_id?: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          goal_id?: string
-          id?: string
-          occurred_on?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "goal_withdrawals_goal_id_user_id_fkey"
-            columns: ["goal_id", "user_id"]
-            isOneToOne: false
-            referencedRelation: "savings_goals"
-            referencedColumns: ["id", "user_id"]
-          },
-        ]
-      }
-      month_closings: {
-        Row: {
-          closed_at: string
-          id: string
-          month: string
-          snapshot: Json
-          user_id: string
-        }
-        Insert: {
-          closed_at?: string
-          id?: string
-          month: string
-          snapshot: Json
-          user_id?: string
-        }
-        Update: {
-          closed_at?: string
-          id?: string
-          month?: string
-          snapshot?: Json
-          user_id?: string
-        }
-        Relationships: []
       }
       notion_finance_access: {
         Row: {
@@ -249,11 +142,7 @@ export type Database = {
       savings_goals: {
         Row: {
           account: string
-          allocation_percent: number
-          color: string
           created_at: string
-          deadline: string | null
-          icon: string
           id: string
           name: string
           target: number
@@ -261,11 +150,7 @@ export type Database = {
         }
         Insert: {
           account: string
-          allocation_percent?: number
-          color?: string
           created_at?: string
-          deadline?: string | null
-          icon?: string
           id?: string
           name: string
           target: number
@@ -273,11 +158,7 @@ export type Database = {
         }
         Update: {
           account?: string
-          allocation_percent?: number
-          color?: string
           created_at?: string
-          deadline?: string | null
-          icon?: string
           id?: string
           name?: string
           target?: number
@@ -338,19 +219,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      auto_close_financial_months: { Args: never; Returns: undefined }
-      close_financial_month: {
-        Args: { target_month: string }
-        Returns: undefined
-      }
-      ensure_recurring_bills: {
-        Args: { target_month: string }
-        Returns: undefined
-      }
-      pay_financial_bill: {
-        Args: { bill_id: string; existing_transaction?: string }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

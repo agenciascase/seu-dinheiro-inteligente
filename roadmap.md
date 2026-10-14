@@ -1,9 +1,7 @@
 # Meu Organizador
-- [ ] Sync real Pluggy accounts into Visão geral: replaced credentials return HTTP 401; blocked on valid credentials from the same production app and account-holder bank consent.
-- [x] Expand personal planning: monthly dashboard, income/expense editing, recurring bills, percentage goals and withdrawals, category budgets, calendar, automatic closing on next access/history, reports/simulation/alerts, search and PDF/Excel/CSV exports. Signed-in allocation/withdrawal/export flow verified and temporary rows removed; mobile pages have no overflow.
-- [x] Replaced Pluggy credentials through secure form without deleting bank records; verified HTTP 401 from new values in provider and signed-in UI.
 - [x] Simplify navigation to Contas a pagar, hide dates and show current-month unpaid bills with automatic carryover; rules and signed-in payment persistence verified, no runtime errors or mobile overflow.
 - [x] Preserve Pluggy connection and bank movement access in a collapsible section inside Contas a pagar; connection window verified.
+- [ ] Synchronize real Pluggy movements: authorization discovery returns HTTP 403; no authorized bank is registered. Await user bank consent and provider production permissions (widget currently displays Demo).
 - [x] Notion organizer imported with owner-only access; existing pending rows read back in signed-in UI.
 - [x] Add and verify a Contas a pagar tab with paid/pending statuses.
 - [x] Navy/yellow and motivation; minimum savings without ceiling.

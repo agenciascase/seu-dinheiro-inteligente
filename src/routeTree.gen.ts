@@ -12,15 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedContasAPagarRouteImport } from './routes/_authenticated/contas-a-pagar'
-import { Route as AuthenticatedContasFixasRouteImport } from './routes/_authenticated/contas-fixas'
-import { Route as AuthenticatedDespesasRouteImport } from './routes/_authenticated/despesas'
-import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as AuthenticatedPlanejamentoRouteImport } from './routes/_authenticated/planejamento'
-import { Route as AuthenticatedReceitasRouteImport } from './routes/_authenticated/receitas'
-import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -36,137 +29,50 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedContasAPagarRoute =
   AuthenticatedContasAPagarRouteImport.update({
     id: '/contas-a-pagar',
     path: '/contas-a-pagar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedContasFixasRoute =
-  AuthenticatedContasFixasRouteImport.update({
-    id: '/contas-fixas',
-    path: '/contas-fixas',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDespesasRoute = AuthenticatedDespesasRouteImport.update({
-  id: '/despesas',
-  path: '/despesas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
-  id: '/metas',
-  path: '/metas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPlanejamentoRoute =
-  AuthenticatedPlanejamentoRouteImport.update({
-    id: '/planejamento',
-    path: '/planejamento',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedReceitasRoute = AuthenticatedReceitasRouteImport.update({
-  id: '/receitas',
-  path: '/receitas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/calendario': typeof AuthenticatedCalendarioRoute
   '/contas-a-pagar': typeof AuthenticatedContasAPagarRoute
-  '/contas-fixas': typeof AuthenticatedContasFixasRoute
-  '/despesas': typeof AuthenticatedDespesasRoute
-  '/metas': typeof AuthenticatedMetasRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/planejamento': typeof AuthenticatedPlanejamentoRoute
-  '/receitas': typeof AuthenticatedReceitasRoute
-  '/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/calendario': typeof AuthenticatedCalendarioRoute
   '/contas-a-pagar': typeof AuthenticatedContasAPagarRoute
-  '/contas-fixas': typeof AuthenticatedContasFixasRoute
-  '/despesas': typeof AuthenticatedDespesasRoute
-  '/metas': typeof AuthenticatedMetasRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/planejamento': typeof AuthenticatedPlanejamentoRoute
-  '/receitas': typeof AuthenticatedReceitasRoute
-  '/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/contas-a-pagar': typeof AuthenticatedContasAPagarRoute
-  '/_authenticated/contas-fixas': typeof AuthenticatedContasFixasRoute
-  '/_authenticated/despesas': typeof AuthenticatedDespesasRoute
-  '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/_authenticated/planejamento': typeof AuthenticatedPlanejamentoRoute
-  '/_authenticated/receitas': typeof AuthenticatedReceitasRoute
-  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/auth'
-    | '/calendario'
-    | '/contas-a-pagar'
-    | '/contas-fixas'
-    | '/despesas'
-    | '/metas'
-    | '/painel'
-    | '/planejamento'
-    | '/receitas'
-    | '/relatorios'
+  fullPaths: '/' | '/auth' | '/contas-a-pagar' | '/painel'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/calendario'
-    | '/contas-a-pagar'
-    | '/contas-fixas'
-    | '/despesas'
-    | '/metas'
-    | '/painel'
-    | '/planejamento'
-    | '/receitas'
-    | '/relatorios'
+  to: '/' | '/auth' | '/contas-a-pagar' | '/painel'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/calendario'
     | '/_authenticated/contas-a-pagar'
-    | '/_authenticated/contas-fixas'
-    | '/_authenticated/despesas'
-    | '/_authenticated/metas'
     | '/_authenticated/painel'
-    | '/_authenticated/planejamento'
-    | '/_authenticated/receitas'
-    | '/_authenticated/relatorios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,39 +104,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/calendario': {
-      id: '/_authenticated/calendario'
-      path: '/calendario'
-      fullPath: '/calendario'
-      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/contas-a-pagar': {
       id: '/_authenticated/contas-a-pagar'
       path: '/contas-a-pagar'
       fullPath: '/contas-a-pagar'
       preLoaderRoute: typeof AuthenticatedContasAPagarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contas-fixas': {
-      id: '/_authenticated/contas-fixas'
-      path: '/contas-fixas'
-      fullPath: '/contas-fixas'
-      preLoaderRoute: typeof AuthenticatedContasFixasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/despesas': {
-      id: '/_authenticated/despesas'
-      path: '/despesas'
-      fullPath: '/despesas'
-      preLoaderRoute: typeof AuthenticatedDespesasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/metas': {
-      id: '/_authenticated/metas'
-      path: '/metas'
-      fullPath: '/metas'
-      preLoaderRoute: typeof AuthenticatedMetasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/painel': {
@@ -240,52 +118,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/planejamento': {
-      id: '/_authenticated/planejamento'
-      path: '/planejamento'
-      fullPath: '/planejamento'
-      preLoaderRoute: typeof AuthenticatedPlanejamentoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/receitas': {
-      id: '/_authenticated/receitas'
-      path: '/receitas'
-      fullPath: '/receitas'
-      preLoaderRoute: typeof AuthenticatedReceitasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/relatorios': {
-      id: '/_authenticated/relatorios'
-      path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedContasAPagarRoute: typeof AuthenticatedContasAPagarRoute
-  AuthenticatedContasFixasRoute: typeof AuthenticatedContasFixasRoute
-  AuthenticatedDespesasRoute: typeof AuthenticatedDespesasRoute
-  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
-  AuthenticatedPlanejamentoRoute: typeof AuthenticatedPlanejamentoRoute
-  AuthenticatedReceitasRoute: typeof AuthenticatedReceitasRoute
-  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedContasAPagarRoute: AuthenticatedContasAPagarRoute,
-  AuthenticatedContasFixasRoute: AuthenticatedContasFixasRoute,
-  AuthenticatedDespesasRoute: AuthenticatedDespesasRoute,
-  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
-  AuthenticatedPlanejamentoRoute: AuthenticatedPlanejamentoRoute,
-  AuthenticatedReceitasRoute: AuthenticatedReceitasRoute,
-  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
