@@ -13,11 +13,10 @@ export const findBankConnections = createServerFn({ method: "POST" }).middleware
   do {
     const url = new URL('https://api.pluggy.ai/v2/items'); url.searchParams.set('clientUserId', context.userId); if (after) url.searchParams.set('after', after);
     const response = await fetch(url, { headers: { 'X-API-KEY': apiKey } });
-    if (!response.ok) throw new Error(`Pluggy: não foi possível buscar as autorizações (${response.status}).`);
+    if (!response.ok) if (response.status === 403) throw new Error("Pluggy: Acesso negado (403). Verifique se o seu plano permite busca por clientUserId ou se a chave de API tem as permissões necessárias."); throw new Error(`Pluggy: falha na busca (${response.status}).`);
     const page = await response.json() as { results: { id: string; clientUserId?: string; connector: { name: string } }[]; next?: string | null };
     const owned = page.results.filter(item => item.clientUserId === context.userId);
     if (owned.length) {
-      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
       const result = await supabaseAdmin.from('bank_connections').upsert(owned.map(item => ({ user_id: context.userId, item_id: item.id, bank_name: item.connector.name })), { onConflict: 'item_id' });
       if (result.error) throw new Error(result.error.message);
       ids.push(...owned.map(item => item.id));
