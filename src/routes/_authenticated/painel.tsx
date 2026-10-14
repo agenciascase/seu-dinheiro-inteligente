@@ -114,10 +114,10 @@ function Painel() {
 
               <div className="lg:col-span-2">
                 <h2 className="flex items-center gap-2 text-2xl font-bold">
-                  <Sprout className="h-5 w-5 text-primary" /> Gastos que você pode eliminar
+                  <Sprout className="h-5 w-5 text-primary" /> Eliminar gastos desnecessários
                 </h2>
                 <>
-                    <p className="mt-3 text-sm text-muted-foreground">Economia estimada no período</p>
+                    <p className="mt-3 text-sm text-muted-foreground">Economia estimada</p>
                      <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(covered)}</p>
                     <p className="mt-2 text-sm text-muted-foreground">Estas são as contas e assinaturas que pesam no seu bolso sem serem essenciais. Revise cada uma e elimine o que não faz falta.</p>
                     <ul className="mt-4 space-y-3">
@@ -125,15 +125,12 @@ function Painel() {
                         <li key={c.name} className="flex items-center justify-between gap-3 border-b pb-3 text-sm last:border-0">
                           <div className="min-w-0">
                             <p className="font-semibold">{c.name}</p>
-                            <p className="text-muted-foreground">
-                              {c.count > 1 ? `${c.count} lançamentos no período` : "1 lançamento no período"}
-                            </p>
                            </div>
                           <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Você economizaria</p><p className="font-semibold text-success">{brl(c.total)}</p></div>
                         </li>
                       ))}
                     </ul>
-                    {namedCuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhum gasto dispensável encontrado neste período.</p>}
+                    {namedCuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhum gasto dispensável encontrado.</p>}
                   </>
               </div>
             </section>
