@@ -44,6 +44,7 @@ function Painel() {
   const flowRows = useMemo(() => filterCashFlow(txs, flow), [txs, flow]);
   const summary = useMemo(() => summarize(txs), [txs]);
   const { cuts, covered } = useMemo(() => suggestCuts(summary), [summary]);
+  const namedCuts = useMemo(() => suggestNamedCuts(periodTxs), [periodTxs]);
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("transactions").delete().eq("id", id);
