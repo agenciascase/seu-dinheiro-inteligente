@@ -7,7 +7,7 @@ import { Banks } from "@/components/finance/banks";
 import { Goals } from "@/components/finance/goals";
 import { FinancialAssistant } from "@/components/finance/financial-assistant";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { ArrowDownLeft, ArrowUpRight, Wallet, TrendingDown, Plus, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Sprout, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -113,24 +113,26 @@ function Painel() {
 
               <div className="lg:col-span-2">
                 <h2 className="flex items-center gap-2 text-2xl font-bold">
-                  <TrendingDown className="h-5 w-5 text-warning" /> Onde cortar
+                  <Sprout className="h-5 w-5 text-primary" /> Oportunidades de economia
                 </h2>
                 <>
-                    <p className="mt-3 text-sm text-muted-foreground">Economia potencial no período: <strong className="text-foreground">{brl(covered)}</strong>. Sobra atual: {brl(summary.leftover)}.</p>
+                    <p className="mt-3 text-sm text-muted-foreground">Economia estimada no período</p>
+                    <p className="mt-1 text-3xl font-bold text-primary tabular-nums">{brl(covered)}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Possibilidades para guardar mais, preservando seus gastos essenciais.</p>
                     <ul className="mt-4 space-y-3">
                       {cuts.map((c) => (
-                        <li key={c.category} className="flex items-center justify-between border-b pb-3 text-sm last:border-0">
-                          <div>
+                        <li key={c.category} className="flex items-center justify-between gap-3 border-b pb-3 text-sm last:border-0">
+                          <div className="min-w-0">
                             <p className="font-semibold">{c.category}</p>
                             <p className="text-muted-foreground">
-                              de {brl(c.current)} para {brl(c.current - c.cut)}
+                              Gasto atual: {brl(c.current)} · Sugestão: {brl(c.current - c.cut)}
                             </p>
                           </div>
-                          <span className="font-semibold text-success">−{brl(c.cut)}</span>
+                          <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Economia possível</p><p className="font-semibold text-success">{brl(c.cut)}</p></div>
                         </li>
                       ))}
                     </ul>
-                    {cuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhum corte identificado em categorias flexíveis.</p>}
+                    {cuts.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhuma oportunidade estimada em gastos flexíveis neste período.</p>}
                   </>
               </div>
             </section>
