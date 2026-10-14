@@ -117,7 +117,7 @@ export type CashFlow = "all" | "income" | "expense";
 export function filterCashFlow<T extends Tx>(txs: T[], flow: CashFlow): T[] {
   return flow === "all" ? txs : txs.filter(tx => tx.kind === flow);
 }
-export function categorize(description: string): string {
+export function categorize(description: string, externalCategory?: string): string {
   const text = description.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const rules: [string, RegExp][] = [
     ["Delivery", /ifood|rappi|delivery/], ["Moradia", /aluguel|energia|conta de luz|internet|condominio|agua/],
@@ -126,7 +126,7 @@ export function categorize(description: string): string {
     ["Educação", /curso|escola|faculdade/], ["Restaurantes", /restaurante|padaria|lanchonete/],
     ["Lazer", /cinema|show|bar com amigos/], ["Compras", /shopee|renner|amazon|magalu/],
   ];
-  return rules.find(([, pattern]) => pattern.test(text))?.[0] ?? "Outros";
+  return rules.find(([, pattern]) => pattern.test(text))?.[0] ?? (externalCategory && CATEGORIES.includes(externalCategory as any) ? externalCategory : "Outros");
 }
 export function cardSummary(txs: Tx[]) {
   const rows = txs.filter(t => t.payment_method === "credit" && t.kind === "expense" && !t.is_transfer);
